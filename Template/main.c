@@ -37,138 +37,25 @@ OF SUCH DAMAGE.
 #include "gd32f3x0.h"
 #include "systick.h"
 #include <stdio.h>
-#include "main.h"
-#include "i2c.h"
-#include "PWM.h"
-#include "soft_tlc59108.h"
-#include "Time.h"
-
-
-/*!
-    \brief      toggle the led every 500ms
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-extern volatile uint32_t *PWM_CHx_Reg[8];
+#include "drv_i2c.h"
+#include "test.h"
+#include "task_sch.h"
 
 int main(void)
 {
-		nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
-		systick_config();
-		timer15_config(83,999);
-		i2c_config();
-		PWM_Init();
+    nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
+    systick_config();
+    i2c_config();
 
-		TIMER_CH0CV(TIMER1) = 0;
-		TIMER_CH1CV(TIMER1) = 0;
-		TIMER_CH2CV(TIMER1) = 0x00;
-		TIMER_CH3CV(TIMER1) = 100;
-	
-		TIMER_CH0CV(TIMER13) = 100;
-			
-		TIMER_CH0CV(TIMER2) = 0;
-		TIMER_CH1CV(TIMER2) = 0;
-		TIMER_CH3CV(TIMER2) = 0;
-	
-		Tlc59108_Register[PWM0]=0xff;
-		Tlc59108_Register[PWM1]=0x5A;
-		Tlc59108_Register[PWM2]=55;
-		
-		Tlc59108_Register[PWM5]=0xff;
-		Tlc59108_Register[PWM6]=0x5A;
-		Tlc59108_Register[PWM7]=0x55;
-		
-		
-
-		while(1)
-	  {
-		
-				Tlc59108_logic(Tlc59108_Register,i2c_rxbuffer);
-		
-		}
-
-
+    #if (defined(_TEST_) && _TEST_ == 0x01)
+    test_func_enter();
+    #else
+    init_led_bars(LED_BAR_INDEX);
+    task_register(WS2812_RENDER_TASK, TASK_10MS_LEVEL, ws2812_render);
+    task_register(DATA_ANALYSIS_TASK, TASK_DATA_DEAL_0MS_LEVEL, data_analysis_task);
+    while(1)
+    {
+        task_server();
+    }
+    #endif
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//void led_spark(void)
-//{
-//    static __IO uint32_t timingdelaylocal = 0U;
-
-//    if(timingdelaylocal){
-
-//        if(timingdelaylocal < 500U){
-//            gd_eval_led_on(LED1);
-//        }else{
-//            gd_eval_led_off(LED1);
-//        }
-
-//        timingdelaylocal--;
-//    }else{
-//        timingdelaylocal = 1000U;
-//    }
-//}
-
-/*!
-    \brief      main function
-    \param[in]  none
-    \param[out] none
-    \retval     none
-*/
-//int main(void)
-//{
-//    /* configure systick */
-//    systick_config();
-//    /* initilize the LEDs, USART and key */
-//    gd_eval_led_init(LED1);
-//    gd_eval_led_init(LED2);
-//    gd_eval_led_init(LED3);
-//    gd_eval_com_init(EVAL_COM);
-//    gd_eval_key_init(KEY_WAKEUP, KEY_MODE_GPIO);
-//    
-//    /* print out the clock frequency of system, AHB, APB1 and APB2 */
-//    printf("\r\nCK_SYS is %d", rcu_clock_freq_get(CK_SYS));
-//    printf("\r\nCK_AHB is %d", rcu_clock_freq_get(CK_AHB));
-//    printf("\r\nCK_APB1 is %d", rcu_clock_freq_get(CK_APB1));
-//    printf("\r\nCK_APB2 is %d", rcu_clock_freq_get(CK_APB2));
-
-//    while (1){
-//        if(RESET == gd_eval_key_state_get(KEY_WAKEUP)){
-//            gd_eval_led_on(LED2);
-//            delay_1ms(500);
-//            gd_eval_led_off(LED2);
-//            gd_eval_led_toggle(LED3);
-//        }
-//    }
-//}
-
-///* retarget the C library printf function to the USART */
-//int fputc(int ch, FILE *f)
-//{
-//    usart_data_transmit(EVAL_COM, (uint8_t)ch);
-//    while(RESET == usart_flag_get(EVAL_COM, USART_FLAG_TBE));
-
-//    return ch;
-//}

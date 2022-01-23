@@ -1,3 +1,3 @@
-# LedDriver_GD32F330_TLC59108
+# LedDriver_GD32F330_WS2812
 
-使用GD32f330 替换 TLC59108 
+使用GD32f330 作 ws2812中继驱动器
