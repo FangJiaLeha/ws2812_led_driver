@@ -28,10 +28,10 @@ typedef struct ws2812_bar* ws2812_bar_t;
 
 enum ws2812_led_water_blink_bre_mode
 {
-    BLINK_LEFT = 0x01,
-    BLINK_RIGHT,
-    WATER_LEFT,
+    WATER_LEFT = 0x01,
     WATER_RIGHT,
+    BLINK_LEFT,
+    BLINK_RIGHT,
 };
 
 #define WATER_MODE_CHECK(_water_mode)                                          \

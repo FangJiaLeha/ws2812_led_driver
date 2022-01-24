@@ -550,29 +550,9 @@
               <FilePath>..\platform\src\ws2812.c</FilePath>
             </File>
             <File>
-              <FileName>test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\test\test.c</FilePath>
-            </File>
-            <File>
-              <FileName>led_bar.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\led_bar.c</FilePath>
-            </File>
-            <File>
-              <FileName>led_frame.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\led_frame.c</FilePath>
-            </File>
-            <File>
               <FileName>ws2812_led_bar.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\ws2812_led_bar.c</FilePath>
-            </File>
-            <File>
-              <FileName>task_sch.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\task_sch.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -593,6 +573,38 @@
         </Group>
         <Group>
           <GroupName>AbsLayer</GroupName>
+          <Files>
+            <File>
+              <FileName>led_frame.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\led_frame.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Test</GroupName>
+          <Files>
+            <File>
+              <FileName>test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\test\test.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>FuncLayer</GroupName>
+          <Files>
+            <File>
+              <FileName>led_bar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\led_bar.c</FilePath>
+            </File>
+            <File>
+              <FileName>task_sch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\task_sch.c</FilePath>
+            </File>
+          </Files>
         </Group>
       </Groups>
     </Target>

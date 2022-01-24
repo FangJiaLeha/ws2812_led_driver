@@ -20,15 +20,15 @@ enum led_bar_ctl_mode
     LED_OFF = 0x00,     // 常灭模式
     LED_ON,             // 常亮模式
     LED_RGB,            // RGB模式
-    LED_BLINK,          // 闪烁模式
     LED_WATER,          // 流水灯模式
+    LED_BLINK,          // 闪烁模式
     LED_BREATH          // 呼吸灯模式
 };
 
 /******************************************************************************/
 #define BAR_REQ_LEN_CHECK(_len)                         \
 do {                                                    \
-    if (_len < 8) {                                     \
+    if (_len < 9) {                                     \
         goto set_error;                                 \
     }                                                   \
 } while(0)
@@ -59,7 +59,7 @@ do {                                                    \
     }                                                   \
 } while(0)
 
-#define BAR_CMD_SUM_CHECK(a, b)                         \
+#define BAR_CMD_XOR_CHECK(a, b)                         \
 do {                                                    \
     if (a != b) {                                       \
         goto set_error;                                 \
@@ -68,8 +68,5 @@ do {                                                    \
 
 /******************************************************************************/
 Rtv_Status init_led_bars(uint8_t led_bar_index);
-#if (defined(_TEST_) && _TEST_ == 0x01)
-void led_bar_control(uint8_t *req, uint8_t req_len)
-#endif
 void data_analysis_task(void);
 #endif

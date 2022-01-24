@@ -27,9 +27,8 @@ static Rtv_Status _update_led_data(ws2812_dev_t ws_dev, uint32_t pos, uint32_t c
 {
     Rtv_Status result = SUCCESS;
     Size_Type write_bytes;
-    uint32_t pulse_size;
     uint16_t idx = 0;
-    uint8_t i, j, tmp;
+    uint8_t i;
 
     if( pos >= ws_dev->dev_attr.led_num )
     {
@@ -44,34 +43,34 @@ static Rtv_Status _update_led_data(ws2812_dev_t ws_dev, uint32_t pos, uint32_t c
     for (idx = 0; idx < ws_dev->dev_attr.led_num; idx++)
     {
         //GRB <==> RGB
-        for (j = 0; j < 8; j++)
+        for (i = 0; i < 8; i++)
         {
-            if (ws_dev->dev_attr.render_buff[idx][1] & (1U << (7 - j)))
+            if (ws_dev->dev_attr.render_buff[idx][1] & (1U << (7 - i)))
             {
-                pulse_buff[RESET_BITS_CNT + (3*idx + 0)*8 + j] = PWM_ONE;
+                pulse_buff[RESET_BITS_CNT + (3*idx + 0)*8 + i] = PWM_ONE;
             }
             else {
-                pulse_buff[RESET_BITS_CNT + (3*idx + 0)*8 + j] = PWM_ZERO;
+                pulse_buff[RESET_BITS_CNT + (3*idx + 0)*8 + i] = PWM_ZERO;
             }
         }
-        for (j = 0; j < 8; j++)
+        for (i = 0; i < 8; i++)
         {
-            if (ws_dev->dev_attr.render_buff[idx][0] & (1U << (7 - j)))
+            if (ws_dev->dev_attr.render_buff[idx][0] & (1U << (7 - i)))
             {
-                pulse_buff[RESET_BITS_CNT + (3*idx + 1)*8 + j] = PWM_ONE;
+                pulse_buff[RESET_BITS_CNT + (3*idx + 1)*8 + i] = PWM_ONE;
             }
             else {
-                pulse_buff[RESET_BITS_CNT + (3*idx + 1)*8 + j] = PWM_ZERO;
+                pulse_buff[RESET_BITS_CNT + (3*idx + 1)*8 + i] = PWM_ZERO;
             }
         }
-        for (j = 0; j < 8; j++)
+        for (i = 0; i < 8; i++)
         {
-            if (ws_dev->dev_attr.render_buff[idx][2] & (1U << (7 - j)))
+            if (ws_dev->dev_attr.render_buff[idx][2] & (1U << (7 - i)))
             {
-                pulse_buff[RESET_BITS_CNT + (3*idx + 2)*8 + j] = PWM_ONE;
+                pulse_buff[RESET_BITS_CNT + (3*idx + 2)*8 + i] = PWM_ONE;
             }
             else {
-                pulse_buff[RESET_BITS_CNT + (3*idx + 2)*8 + j] = PWM_ZERO;
+                pulse_buff[RESET_BITS_CNT + (3*idx + 2)*8 + i] = PWM_ZERO;
             }
         }
     }
@@ -101,7 +100,6 @@ Size_Type  _write(void *dev, Offset_Type pos, const void *buffer, Size_Type size
 {
     ws2812_dev_t wsdev = (ws2812_dev_t)dev;
     uint8_t (*dis_buff)[3] = (uint8_t (*)[3])buffer;
-    int i;
 
     if( pos >= wsdev->dev_attr.led_num || size  == 0 )
     {
@@ -113,7 +111,7 @@ Size_Type  _write(void *dev, Offset_Type pos, const void *buffer, Size_Type size
         size = wsdev->dev_attr.led_num - pos;
     }
 
-    for( i = pos; i < ( pos + size ); i++ )
+    for( int i = pos; i < ( pos + size ); i++ )
     {
         wsdev->dev_attr.render_buff[i][0] = dis_buff[i-pos][0];
         wsdev->dev_attr.render_buff[i][1] = dis_buff[i-pos][1];
@@ -127,10 +125,6 @@ Rtv_Status _control(void *dev, int cmd, void *arg)
 {
     ws2812_dev_t ws_dev = (ws2812_dev_t)dev;
     Rtv_Status update_status;
-    uint8_t bar_buff_idx;
-    uint8_t led_count   = 0;
-    uint8_t led_bar_idx = 0;
-    int i = 0;
     uint32_t *led_num = (uint32_t *)arg;
 
     if( cmd == WS2812_CTRL_INIT )
@@ -154,7 +148,6 @@ Rtv_Status _control(void *dev, int cmd, void *arg)
       } else if( cmd == WS2812_CTRL_BAR_COLOR ) {
         struct ws2812_bar_ctrlpack *pack = arg;
         uint32_t count;
-        uint32_t i;
         
         if( pack->count == 0 || pack->start >= ws_dev->dev_attr.led_num )
         {
@@ -165,7 +158,7 @@ Rtv_Status _control(void *dev, int cmd, void *arg)
         {
             count = ws_dev->dev_attr.led_num - pack->start;
         }
-        for( i = pack->start; i < ( count + pack->start); i++ )
+        for( uint8_t i = pack->start; i < ( count + pack->start); i++ )
         {
             ws_dev->dev_attr.render_buff[i][0] = pack->color[0];
             ws_dev->dev_attr.render_buff[i][1] = pack->color[1];
