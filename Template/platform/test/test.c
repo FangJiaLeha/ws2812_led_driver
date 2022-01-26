@@ -19,6 +19,10 @@ void test_func_enter(void)
     control_pwm(0, PWM_CMD_ENABLE, (void *)&attr1);
     #endif
     
+    #if (defined(_TEST_) && _TEST_ == 0x01)
+    extern uint8_t CheckXOR(const uint8_t *data_buff,uint8_t buff_len);
+    extern void led_bar_control(uint8_t *req, uint8_t req_len);
+    #endif
     #if (defined(_WS2812_DRV_TSET) && _WS2812_DRV_TSET == 0x01)
     init_led_bars(LED_BAR_INDEX);
     #endif
@@ -28,11 +32,10 @@ void test_func_enter(void)
     #endif
     
     #if (defined(_LED_BAR_TEST) && _LED_BAR_TEST == 0x01)
-    uint8_t req[] = {0x90, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    extern uint8_t check_sum(uint8_t *data_buff, uint8_t buff_len);
+    uint8_t req[] = {0x90, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     #if (defined(_LED_OFF_TEST) && _LED_OFF_TEST == 0x01)
     req[2] = LED_OFF;
-    req[7] = check_sum(req, ITEM_NUM(req));
+    req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #endif
 
@@ -40,27 +43,27 @@ void test_func_enter(void)
     req[2] = LED_ON;
         /* 白色常亮测试 */
         req[6] = 1;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 红色常亮测试 */
         req[6] = 2;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 绿色常亮测试 */
         req[6] = 3;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 蓝色常亮测试 */
         req[6] = 4;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 异常颜色测试 */
         req[6] = 5;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 黑色常亮测试 */
         req[6] = 0;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #endif
 
@@ -72,70 +75,77 @@ void test_func_enter(void)
         req[4] = rgb_value >> 16;
         req[5] = rgb_value >> 8 & 0xFF;
         req[6] = rgb_value & 0xFF;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 紫色测试 */
         rgb_value = 0xFF00FFul;
         req[4] = rgb_value >> 16;
         req[5] = rgb_value >> 8 & 0xFF;
         req[6] = rgb_value & 0xFF;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 黄色测试 */
         rgb_value = 0xFFFF00ul;
         req[4] = rgb_value >> 16;
         req[5] = rgb_value >> 8 & 0xFF;
         req[6] = rgb_value & 0xFF;
-        req[7] = check_sum(req, ITEM_NUM(req));
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #endif
 
-    #if (defined(_LED_BLINK_TEST) && _LED_BLINK_TEST == 0x01)
-    req[2] = LED_BLINK;
-    #if (defined(_LEFT_BLINK_TEST) && _LEFT_BLINK_TEST == 0x01)
-        /* 左边10个led灯绿色闪烁 周期100ms*/
-        req[3] = 0x01;
-        req[4] = 0x03;
-        req[5] = 0x0A;
-        req[6] = 0x01;
-        req[7] = check_sum(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    #else
-        /* 右边10个led灯绿色闪烁 周期500ms */
-        req[3] = 0x02;
-        req[4] = 0x03;
-        req[5] = 0x0A;
-        req[6] = 0x05;
-        req[7] = check_sum(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    #endif
-    #endif
-
+// 流水灯测试
     #if (defined(_LED_WATER_TEST) && _LED_WATER_TEST == 0x01)
     req[2] = LED_WATER;
     #if (defined(_LEFT_WATER_TEST) && _LEFT_WATER_TEST == 0x01)
-        /* 左转 蓝色 200ms移动速度 2个led灯移动数量 */
-        req[3] = 0x03;
+        /* 左转 蓝色 单次流水灯数量1个 流水速度：200ms*/
+        req[3] = 0x01;
         req[4] = 0x04;
-        req[5] = 0x06;
-        req[6] = 0x02;
-    req[7] = check_sum(req, ITEM_NUM(req));
+        req[5] = 0x05;
+        req[6] = 0x03;
+    req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #else
-        /* 右转 白色 500ms移动速度 1个led灯移动数量 */
-        req[3] = 0x04;
+        /* 右转 白色 单次流水灯数量2个 流水速度：500ms */
+        req[3] = 0x02;
         req[4] = 0x01;
-        req[5] = 0x01;
-        req[6] = 0x05;
-    req[7] = check_sum(req, ITEM_NUM(req));
+        req[5] = 0x0A;
+        req[6] = 0x03;
+    req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #endif
     #endif
 
-    #if (defined(_LED_BREATH_TEST) && _LED_BREATH_TEST == 0x01)
-    req[2] = LED_BREATH;
-    req[7] = check_sum(req, ITEM_NUM(req));
+// 分段闪烁测试
+    #if (defined(_LED_BLINK_TEST) && _LED_BLINK_TEST == 0x01)
+    req[2] = LED_BLINK;
+    #if (defined(_LEFT_BLINK_TEST) && _LEFT_BLINK_TEST == 0x01)
+        /* 左边 绿色 10个led灯 闪烁周期50ms*/
+        req[3] = 0x03;
+        req[4] = 0x03;
+        req[5] = 0x20;
+        req[6] = 0x01;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
+    led_bar_control(req, ITEM_NUM(req));
+    #else
+        /* 右边 蓝色 10个led灯 闪烁周期250ms */
+        req[3] = 0x04;
+        req[4] = 0x03;
+        req[5] = 0x0A;
+        req[6] = 0x05;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #endif
     #endif
+
+// 呼吸模式测试
+    #if (defined(_LED_BREATH_TEST) && _LED_BREATH_TEST == 0x01)
+    req[2] = LED_BREATH;
+    req[8] = CheckXOR(req, ITEM_NUM(req));
+    led_bar_control(req, ITEM_NUM(req));
+    #endif
+    #endif
+    while(1)
+    {
+        task_server();
+    }
 }

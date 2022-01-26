@@ -6,7 +6,8 @@ static ws2812_bar_t WS2812_BAR_DEV = NULL;
 void ws2812_render(void)
 {
     ws2812_dev_t ws_dev;
-    uint32_t i;
+    uint32_t pos;
+    uint8_t color[3];
 
     if( WS2812_BAR_DEV == NULL )
     {
@@ -25,59 +26,26 @@ void ws2812_render(void)
     
     if( WS2812_BAR_DEV->render_param.render_animation == WATER_LEFT) // 左转显示
     {
-        uint32_t pos;
-        int color;
-        // 获取上一次显示的最后一颗灯珠位置，并将其清零
-        i = ( WS2812_BAR_DEV->render_param.show_pos 
-                        - WS2812_BAR_DEV->render_param.light_leds + 1 ) % WS2812_BAR_DEV->led_num; 
-        WS2812_BAR_DEV->dis_buff[ i ][0] = 0;
-        WS2812_BAR_DEV->dis_buff[ i ][1] = 0;
-        WS2812_BAR_DEV->dis_buff[ i ][2] = 0;
-        WS2812_BAR_DEV->render_param.show_pos++;
-        for ( i = 0; i < WS2812_BAR_DEV->render_param.light_leds; i++ )
-        {
+        for (uint8_t i = 0; i < WS2812_BAR_DEV->render_param.light_leds; i++) {
             pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->led_num;
-            color = (int)WS2812_BAR_DEV->render_param.render_color[0] - (int)( i * 10 );
-            color = color > 0? color:0;
-            WS2812_BAR_DEV->dis_buff[pos][0] = (uint8_t)color;
-            color = (int)WS2812_BAR_DEV->render_param.render_color[1] - (int)( i * 10 );
-            color = color > 0? color:0;
-            WS2812_BAR_DEV->dis_buff[pos][1] = (uint8_t)color;
-            color = (int)WS2812_BAR_DEV->render_param.render_color[2] - (int)( i * 10 );
-            color = color > 0? color:0;
-            WS2812_BAR_DEV->dis_buff[pos][2] = (uint8_t)color;
+            WS2812_BAR_DEV->dis_buff[pos][0] = WS2812_BAR_DEV->render_param.render_color[0];
+            WS2812_BAR_DEV->dis_buff[pos][1] = WS2812_BAR_DEV->render_param.render_color[1];
+            WS2812_BAR_DEV->dis_buff[pos][2] = WS2812_BAR_DEV->render_param.render_color[2];
         }
+        WS2812_BAR_DEV->render_param.show_pos++;
         ws_dev->ws2812_dev_ops.control(ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL);
     } else if( WS2812_BAR_DEV->render_param.render_animation == WATER_RIGHT ) { // 右转显示
-        uint32_t pos;
-        int color;
-        // 获取上一次显示的最后一颗灯珠位置，并将其清零
-        i = ( WS2812_BAR_DEV->render_param.show_pos 
-                        + WS2812_BAR_DEV->render_param.light_leds - 1 ) % WS2812_BAR_DEV->led_num; 
-        WS2812_BAR_DEV->dis_buff[ i ][0] = 0;
-        WS2812_BAR_DEV->dis_buff[ i ][1] = 0;
-        WS2812_BAR_DEV->dis_buff[ i ][2] = 0;
-        WS2812_BAR_DEV->render_param.show_pos--;
-        for ( i = 0; i < WS2812_BAR_DEV->render_param.light_leds; i++ )
+        for (uint8_t i = 0; i < WS2812_BAR_DEV->render_param.light_leds; i++ )
         {
-            pos = ( WS2812_BAR_DEV->render_param.show_pos + i )% WS2812_BAR_DEV->led_num;
-            color = (int)WS2812_BAR_DEV->render_param.render_color[0] - (int)( i * 10 );
-            color = color > 0? color:0;
-            WS2812_BAR_DEV->dis_buff[pos][0] = (uint8_t)color;
-            color = (int)WS2812_BAR_DEV->render_param.render_color[1] - (int)( i * 10 );
-            color = color > 0? color:0;
-            WS2812_BAR_DEV->dis_buff[pos][1] = (uint8_t)color;
-            color = (int)WS2812_BAR_DEV->render_param.render_color[2] - (int)( i * 10 );
-            color = color > 0? color:0;
-            WS2812_BAR_DEV->dis_buff[pos][2] = (uint8_t)color;
+            pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->led_num;
+            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->led_num)-pos-1][0] = WS2812_BAR_DEV->render_param.render_color[0];
+            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->led_num)-pos-1][1] = WS2812_BAR_DEV->render_param.render_color[1];
+            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->led_num)-pos-1][2] = WS2812_BAR_DEV->render_param.render_color[2];
         }
+        WS2812_BAR_DEV->render_param.show_pos++;
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
     } else if( WS2812_BAR_DEV->render_param.render_animation == BLINK_LEFT ) {
-        uint32_t pos = WS2812_BAR_DEV->led_num - WS2812_BAR_DEV->render_param.light_leds;
-        uint8_t color[3];
-
         WS2812_BAR_DEV->render_param.blink_flag = !WS2812_BAR_DEV->render_param.blink_flag;
-
         if (WS2812_BAR_DEV->render_param.blink_flag) {
             color[0] = WS2812_BAR_DEV->render_param.render_color[0];
             color[1] = WS2812_BAR_DEV->render_param.render_color[1];
@@ -86,7 +54,7 @@ void ws2812_render(void)
             memset(color, 0, ITEM_NUM(color));
         }
 
-        for (uint16_t i = pos; i < WS2812_BAR_DEV->led_num; i++)
+        for (uint8_t i = WS2812_BAR_DEV->render_param.show_pos; i < WS2812_BAR_DEV->led_num; i++)
         {
             WS2812_BAR_DEV->dis_buff[i][0] = color[0];
             WS2812_BAR_DEV->dis_buff[i][1] = color[1];
@@ -94,10 +62,7 @@ void ws2812_render(void)
         }
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
     } else if( WS2812_BAR_DEV->render_param.render_animation == BLINK_RIGHT ) {
-        uint8_t color[3];
-
         WS2812_BAR_DEV->render_param.blink_flag = !WS2812_BAR_DEV->render_param.blink_flag;
-
         if (WS2812_BAR_DEV->render_param.blink_flag) {
             color[0] = WS2812_BAR_DEV->render_param.render_color[0];
             color[1] = WS2812_BAR_DEV->render_param.render_color[1];
@@ -106,53 +71,14 @@ void ws2812_render(void)
             memset(color, 0, ITEM_NUM(color));
         }
 
-        for (uint16_t i = 0; i < WS2812_BAR_DEV->render_param.light_leds; i++)
+        for (uint8_t i = WS2812_BAR_DEV->render_param.show_pos; i < WS2812_BAR_DEV->render_param.light_leds; i++)
         {
             WS2812_BAR_DEV->dis_buff[i][0] = color[0];
             WS2812_BAR_DEV->dis_buff[i][1] = color[1];
             WS2812_BAR_DEV->dis_buff[i][2] = color[2];
         }
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
-    } else if( WS2812_BAR_DEV->render_param.render_animation == 6 ) {
-//        unsigned int loopCounter = WS2812_BAR_DEV->render_param.show_pos;
-//        if(loopCounter < 10) {
-//            for(int i = 0; i <  WS2812_BAR_DEV->led_num; i++)
-//            {
-//                WS2812_BAR_DEV->dis_buff[i][0] = 0;
-//                WS2812_BAR_DEV->dis_buff[i][1] = 0;
-//                WS2812_BAR_DEV->dis_buff[i][2] = 0;
-//            }
-//        } else if(loopCounter < 20) {
-//            for(int i = 0; i <  WS2812_BAR_DEV->led_num; i++)
-//            {
-//                WS2812_BAR_DEV->dis_buff[i][0] = 0x7f;
-//                WS2812_BAR_DEV->dis_buff[i][1] = 0x7f;
-//                WS2812_BAR_DEV->dis_buff[i][2] = 0x7f;
-//            }
-//        } else if(loopCounter < 30) {
-//            for(int i = 0; i <  WS2812_BAR_DEV->led_num; i++)
-//            {
-//                WS2812_BAR_DEV->dis_buff[i][0] = 0;
-//                WS2812_BAR_DEV->dis_buff[i][1] = 0;
-//                WS2812_BAR_DEV->dis_buff[i][2] = 0;
-//            }
-//        } else {
-//            loopCounter = loopCounter - 30;
-//            if(loopCounter < (( WS2812_BAR_DEV->led_num + 1) >> 1))
-//            {
-//                WS2812_BAR_DEV->dis_buff[loopCounter%(( WS2812_BAR_DEV->led_num + 1) >> 1)][0] = 0x7f;
-//                WS2812_BAR_DEV->dis_buff[loopCounter%(( WS2812_BAR_DEV->led_num + 1) >> 1)][1] = 0x7f;
-//                WS2812_BAR_DEV->dis_buff[loopCounter%(( WS2812_BAR_DEV->led_num + 1) >> 1)][2] = 0x7f;
-
-//                WS2812_BAR_DEV->dis_buff[ WS2812_BAR_DEV->led_num - 1 - (loopCounter%(( WS2812_BAR_DEV->led_num + 1) >> 1))][0] = 0x7f;
-//                WS2812_BAR_DEV->dis_buff[ WS2812_BAR_DEV->led_num - 1 - (loopCounter%(( WS2812_BAR_DEV->led_num + 1) >> 1))][1] = 0x7f;
-//                WS2812_BAR_DEV->dis_buff[ WS2812_BAR_DEV->led_num - 1 - (loopCounter%(( WS2812_BAR_DEV->led_num + 1) >> 1))][2] = 0x7f;
-//            } else {
-//                WS2812_BAR_DEV->render_switch = 0; // 动画显示完毕
-//            }
-//        }
-//        ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
-//        WS2812_BAR_DEV->render_param.show_pos++;
+    } else {
     }
 }
 
@@ -167,7 +93,7 @@ static Rtv_Status _ws2812_blink(led_bar_t bar, uint8_t mode, uint8_t blink_led_n
     wbar->render_param.render_animation = mode;
     wbar->render_param.light_leds = blink_led_num;
     wbar->render_param.blink_flag = 0;
-    wbar->render_param.show_pos = 0;
+    wbar->render_param.show_pos = (mode == BLINK_RIGHT ? 0 : wbar->led_num - blink_led_num);
     wbar->render_switch = 1;
 
     return SUCCESS;
@@ -185,6 +111,7 @@ static Rtv_Status _ws2812_water(led_bar_t bar, uint8_t mode, uint8_t single_led_
     wbar->parent.off(&wbar->parent);
     wbar->render_param.render_animation = mode;
     wbar->render_param.light_leds = single_led_num;
+    wbar->render_param.show_pos = single_led_num - 1;
     wbar->render_switch = 1;
 
     return SUCCESS;

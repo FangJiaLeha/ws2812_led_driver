@@ -43,14 +43,14 @@ const struct cmd_list cmds[] = {
     {LED_RGB, ctrl_led_rgb},
 
     /**
-     * @brief 控制led 进入闪烁模式
-     */
-    {LED_BLINK, ctrl_led_blink},
-
-    /**
      * @brief 控制led 进入流水灯模式
      */
     {LED_WATER, ctrl_led_water},
+
+    /**
+     * @brief 控制led 进入闪烁模式
+     */
+    {LED_BLINK, ctrl_led_blink},
 
     /**
      * @brief 控制led 进入呼吸模式
@@ -87,17 +87,22 @@ static Rtv_Status ws2812_bar_set_color( led_bar_t bar, float *color )
     return SUCCESS;
 }
 
-uint8_t check_sum(uint8_t *data_buff, uint8_t buff_len)
+#if (defined(_TEST_) && _TEST_ == 0x01)
+uint8_t CheckXOR(const uint8_t *data_buff,uint8_t buff_len)
+#else
+static uint8_t CheckXOR(const uint8_t *data_buff,uint8_t buff_len)
+#endif
 {
-    uint8_t sum = 0;
+    uint8_t checkXor = 0;
     if (NULL == data_buff || buff_len == 0) {
         return 0;
     }
 
-    for (uint8_t len_cnt; len_cnt < buff_len - 1; len_cnt++) {
-        sum += data_buff[len_cnt];
+    for(uint8_t data_len_cnt = 0; data_len_cnt < buff_len - 1; data_len_cnt++)
+    {
+        checkXor ^= *data_buff++;
     }
-    return sum;
+    return checkXor;
 }
 
 /******************************************************************************/
@@ -126,11 +131,6 @@ Rtv_Status init_led_bars(uint8_t led_bar_index)
     }
 
     init_ws2812_bar(&led_bar1, 1, ws2812_bar_set_color, wsdev, WS2812_LED_NUM, 0);
-
-//    Lbar[0]->on(Lbar[0], (float []){(float)255, (float)255, (float)255});
-//    Lbar[0]->on(Lbar[0], (float []){(float)255, (float)0, (float)0});
-//    Lbar[0]->on(Lbar[0], (float []){(float)0, (float)255, (float)0});
-//    Lbar[0]->on(Lbar[0], (float []){(float)0, (float)0, (float)255});
     
     return rtv_status;
 }
@@ -151,14 +151,14 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
     uint8_t bar_cmd_mode = req[0];
     uint8_t bar_id = req[1];
     uint8_t bar_ctrl_mode = req[2];
-    uint8_t bar_cmd_sum = req[7];
+    uint8_t bar_cmd_xor = req[8];
 
     /* req vaild check */
     BAR_REQ_LEN_CHECK(req_len);
     BAR_CMD_MODE_CHECK(bar_cmd_mode);
     BAR_CMD_ID_CHECK(bar_id, ITEM_NUM(Lbar));
     BAR_CMD_CTL_MODE_CHECK(bar_ctrl_mode);
-    BAR_CMD_SUM_CHECK(bar_cmd_sum, check_sum(req, req_len));
+    BAR_CMD_XOR_CHECK(bar_cmd_xor, CheckXOR(req, req_len));
 
     bar = Lbar[bar_id - 1];
     bar_ctrl_para = &req[3];
@@ -259,8 +259,8 @@ static void ctrl_led_blink(led_bar_t led_bar, uint8_t *ctrl_para)
     wbar->render_param.render_color[1] = (float)color_table[color_index][1];
     wbar->render_param.render_color[2] = (float)color_table[color_index][2];
 
-    // 设置默认闪烁周期100ms
-    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, blink_period * 100);
+    // 设置默认闪烁周期50ms
+    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, blink_period * 50);
     wbar->parent.blink(led_bar, blink_mode, blink_led_num);
 }
 
@@ -283,7 +283,9 @@ static void ctrl_led_water(led_bar_t led_bar, uint8_t *ctrl_para)
     wbar->render_param.render_color[0] = (float)color_table[color_index][0];
     wbar->render_param.render_color[1] = (float)color_table[color_index][1];
     wbar->render_param.render_color[2] = (float)color_table[color_index][2];
-    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, move_per * 100);
+
+    // 设置默认流水周期10ms
+    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, move_per * 10);
     wbar->parent.water(led_bar, water_mode, singal_led_num, move_per);
 }
 

@@ -35,7 +35,7 @@ enum ws2812_cmd_list
     WS2812_CTRL_BAR_COLOR
 };
 
-#define WS2812_LED_NUM          (39)
+#define WS2812_LED_NUM          (14)
 
 ws2812_dev_t find_ws2812_dev(void);
 
