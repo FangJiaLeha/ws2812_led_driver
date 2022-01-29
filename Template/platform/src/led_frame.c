@@ -31,8 +31,7 @@ static Rtv_Status water(struct led_bar *bar, uint8_t mode,
 {
     return SUCCESS;
 }
-static Rtv_Status breath(struct led_bar *bar, uint8_t s_color_index, 
-                         uint8_t e_color_index, uint8_t breath_period)
+static Rtv_Status breath(struct led_bar *bar, uint8_t breath_period)
 {
     return SUCCESS;
 }

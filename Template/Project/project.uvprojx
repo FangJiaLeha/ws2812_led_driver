@@ -587,16 +587,6 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Test</GroupName>
-          <Files>
-            <File>
-              <FileName>test.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\test\test.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>FuncLayer</GroupName>
           <Files>
             <File>
@@ -608,6 +598,16 @@
               <FileName>task_sch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\task_sch.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Test</GroupName>
+          <Files>
+            <File>
+              <FileName>test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\test\test.c</FilePath>
             </File>
           </Files>
         </Group>

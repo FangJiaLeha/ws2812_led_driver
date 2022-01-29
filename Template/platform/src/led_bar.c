@@ -260,9 +260,9 @@ static void ctrl_led_blink(led_bar_t led_bar, uint8_t *ctrl_para)
     color_index = ctrl_para[1];
     blink_led_num = ctrl_para[2];
     blink_period = ctrl_para[3];
-    wbar->render_param.render_color[0] = (float)color_table[color_index][0];
-    wbar->render_param.render_color[1] = (float)color_table[color_index][1];
-    wbar->render_param.render_color[2] = (float)color_table[color_index][2];
+    wbar->render_param.render_color1[0] = (float)color_table[color_index][0];
+    wbar->render_param.render_color1[1] = (float)color_table[color_index][1];
+    wbar->render_param.render_color1[2] = (float)color_table[color_index][2];
 
     // 设置默认闪烁周期50ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, blink_period * 50);
@@ -276,18 +276,18 @@ static void ctrl_led_water(led_bar_t led_bar, uint8_t *ctrl_para)
     if (NULL == ctrl_para || NULL == wbar) {
         return;
     }
+    color_index = ctrl_para[1];
     if (color_index > MAX_COLOR_INDEX) {
         return;
     }
 
     water_mode = ctrl_para[0];
-    color_index = ctrl_para[1];
     singal_led_num = ctrl_para[2];
     move_per = ctrl_para[3];
 
-    wbar->render_param.render_color[0] = (float)color_table[color_index][0];
-    wbar->render_param.render_color[1] = (float)color_table[color_index][1];
-    wbar->render_param.render_color[2] = (float)color_table[color_index][2];
+    wbar->render_param.render_color1[0] = (float)color_table[color_index][0];
+    wbar->render_param.render_color1[1] = (float)color_table[color_index][1];
+    wbar->render_param.render_color1[2] = (float)color_table[color_index][2];
 
     // 设置默认流水周期10ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, move_per * 10);
@@ -296,7 +296,29 @@ static void ctrl_led_water(led_bar_t led_bar, uint8_t *ctrl_para)
 
 static void ctrl_led_breath(led_bar_t led_bar, uint8_t *ctrl_para)
 {
-    if (NULL == ctrl_para) {
+    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    uint8_t breath_period, s_color_index, e_color_index;
+    if (NULL == ctrl_para || NULL == wbar) {
         return;
     }
+
+    breath_period = ctrl_para[2];
+    s_color_index = ctrl_para[1];
+    e_color_index = ctrl_para[0];
+    if (s_color_index > MAX_COLOR_INDEX || e_color_index > MAX_COLOR_INDEX) {
+        return;
+    }
+
+    // 记录呼吸模式下 起始灯带颜色值
+    wbar->render_param.render_color1[0] = (float)color_table[s_color_index][0];
+    wbar->render_param.render_color1[1] = (float)color_table[s_color_index][1];
+    wbar->render_param.render_color1[2] = (float)color_table[s_color_index][2];
+    // 记录呼吸模式下 终点灯带颜色值
+    wbar->render_param.render_color2[0] = (float)color_table[e_color_index][0];
+    wbar->render_param.render_color2[1] = (float)color_table[e_color_index][1];
+    wbar->render_param.render_color2[2] = (float)color_table[e_color_index][2];
+
+    // 设置默认单次呼吸周期5ms 呼吸总周期100ms
+    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, 5);
+    wbar->parent.breath(led_bar, breath_period * 100);
 }
