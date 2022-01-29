@@ -5,8 +5,11 @@ const uint8_t color_table[][3] = {
     {0, 0, 0},           // 黑色 --> 0
     {0xFF, 0xFF, 0xFF},  // 白色 --> 1
     {0xFF, 0, 0},        // 红色 --> 2
-    {0, 0x7F, 0},        // 绿色 --> 3
-    {0, 0, 0x7F},        // 蓝色 --> 4
+    {0, 0xFF, 0},        // 绿色 --> 3
+    {0, 0, 0xFF},        // 蓝色 --> 4
+    {0xFF, 0xFF, 0},     // 黄色 --> 5
+    {0, 0xFF, 0xFF},     // 青色 --> 6
+    {0xFF, 0, 0xFF},     // 紫色 --> 7
 };
 #define MAX_COLOR_INDEX     ( sizeof(color_table) / sizeof(color_table[0]) - 1)
 
