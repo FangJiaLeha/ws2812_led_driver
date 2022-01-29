@@ -173,11 +173,13 @@ set_error:
 
 void data_analysis_task(void)
 {
-    uint16_t recv_data_len = get_data_len();
-    uint8_t *recv_data_buff = get_data_buff();
+    uint16_t recv_data_len = 0;
+    uint8_t *recv_data_buff = NULL;
 
+    control_i2c(I2C0_DEV, I2C_GET_DATA_LEN, (void *)&recv_data_len);
+    control_i2c(I2C0_DEV, I2C_GET_DATA_BUFF, (void *)recv_data_buff);
     if (recv_data_len != 0) {
-        clear_data_len();
+        control_i2c(I2C0_DEV, I2C_RESET_DATA_LEN, NULL);
         led_bar_control(recv_data_buff, recv_data_len);
     }
 }

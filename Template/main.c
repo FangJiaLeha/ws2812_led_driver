@@ -34,23 +34,17 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
-#include "gd32f3x0.h"
-#include "systick.h"
-#include <stdio.h>
-#include "drv_i2c.h"
+#include "board.h"
 #include "test.h"
+#include "ws2812_led_bar.h"
 #include "task_sch.h"
 
 int main(void)
 {
-    nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
-    systick_config();
-    i2c_config();
-
+    init_board();
     #if (defined(_TEST_) && _TEST_ == 0x01)
     test_func_enter();
     #else
-    init_led_bars(LED_BAR_INDEX);
     task_register(WS2812_RENDER_TASK, TASK_10MS_LEVEL, ws2812_render);
     task_register(DATA_ANALYSIS_TASK, TASK_DATA_DEAL_0MS_LEVEL, data_analysis_task);
     while(1)

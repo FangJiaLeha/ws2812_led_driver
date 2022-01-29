@@ -1,4 +1,5 @@
 #include "test.h"
+#include "ws2812_led_bar.h"
 
 uint8_t flag = 0;
 

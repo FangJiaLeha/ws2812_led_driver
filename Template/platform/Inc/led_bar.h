@@ -2,11 +2,11 @@
 #define _LED_BAR_H
 
 #include "common.h"
-#include "ws2812.h"
-#include "led_frame.h"
-#include "ws2812_led_bar.h"
-#include "task_sch.h"
 #include "drv_i2c.h"
+#include "ws2812.h"
+#include "ws2812_led_bar.h"
+#include "led_frame.h"
+#include "task_sch.h"
 
 #define LED_BAR_INDEX               0x01u
 

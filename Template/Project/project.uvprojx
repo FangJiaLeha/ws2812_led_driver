@@ -554,6 +554,11 @@
               <FileType>1</FileType>
               <FilePath>..\platform\src\ws2812_led_bar.c</FilePath>
             </File>
+            <File>
+              <FileName>board.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\board.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
