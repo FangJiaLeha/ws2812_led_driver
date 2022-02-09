@@ -60,7 +60,9 @@ struct i2c_dev
     uint16_t set_i2c_addr;
     uint16_t recv_cnt;
     uint16_t read_len;
+    uint16_t send_cnt;
     uint8_t  *recv_buff;
+    uint8_t  *send_buff;
     uint8_t  malloc_size;
 };
 typedef struct i2c_dev_t i2c_dev_t;
@@ -110,7 +112,9 @@ static struct i2c_dev i2c_devs[] =
         .set_i2c_addr = I2C_DEF_ADDR,
         .recv_cnt = 0,
         .read_len = 0,
+        .send_cnt = 0,
         .recv_buff = NULL,
+        .send_buff = NULL,
         .malloc_size = 8
     },
     #endif
@@ -131,10 +135,9 @@ void I2C0_EV_IRQHandler(void)
         i2c_enable(I2C0);
         i2c_devs[0].read_len = i2c_devs[0].recv_cnt;
         i2c_devs[0].recv_cnt = 0;
-    } else if(i2c_interrupt_flag_get(I2C1, I2C_INT_FLAG_AERR)) {
-        i2c_interrupt_flag_clear(I2C0, I2C_INT_FLAG_AERR);
-    } else if(i2c_interrupt_flag_get(I2C0, I2C_INT_FLAG_BERR)) {
-        i2c_interrupt_flag_clear(I2C0, I2C_INT_FLAG_BERR);
+    } else if( (i2c_interrupt_flag_get(I2C0, I2C_INT_FLAG_TBE)) &&
+              !(i2c_interrupt_flag_get(I2C0, I2C_INT_FLAG_AERR)) ) {
+        i2c_data_transmit(I2C0, i2c_devs[0].send_buff[(i2c_devs[0].send_cnt++) % (i2c_devs[0].malloc_size)]);
     } else {
     }
 }
@@ -286,11 +289,13 @@ static Rtv_Status _i2c_periph_init(uint8_t _set_i2c_addr, uint8_t _recv_buff_siz
 
         if (_recv_buff_size != i2c_devs[i2c_dev_cnt].malloc_size && _recv_buff_size == 0) {
             i2c_devs[i2c_dev_cnt].recv_buff = (uint8_t *)malloc(i2c_devs[i2c_dev_cnt].malloc_size);
+            i2c_devs[i2c_dev_cnt].send_buff = (uint8_t *)malloc(i2c_devs[i2c_dev_cnt].malloc_size);
         } else {
             i2c_devs[i2c_dev_cnt].recv_buff = (uint8_t *)malloc(_recv_buff_size);
+            i2c_devs[i2c_dev_cnt].send_buff = (uint8_t *)malloc(_recv_buff_size);
             i2c_devs[i2c_dev_cnt].malloc_size = _recv_buff_size;
         }
-        if (i2c_devs[i2c_dev_cnt].recv_buff == NULL) {
+        if (i2c_devs[i2c_dev_cnt].recv_buff == NULL || i2c_devs[i2c_dev_cnt].send_buff == NULL) {
             return ENOMEM;
         }
     }
@@ -321,11 +326,15 @@ void control_i2c(uint8_t i2c_index, int cmd, void *arg)
         case I2C_RESET_DATA_LEN:
             i2c_devs[i2c_index-1].read_len = 0;
         break;
-        case I2C_GET_DATA_BUFF:
+        case I2C_GET_RECV_BUFF:
             memmove((uint8_t *)arg, i2c_devs[i2c_index - 1].recv_buff, i2c_devs[i2c_index - 1].read_len);
         break;
         case I2C_RESET_DATA_BUFF:
             memset(i2c_devs[i2c_index - 1].recv_buff, 0, i2c_devs[i2c_index - 1].malloc_size);
+        break;
+        case I2C_GET_SEND_BUFF:
+            uint8_t **get_send_buff = arg;
+            *get_send_buff = i2c_devs[i2c_index - 1].send_buff;
         break;
         default:
         break;

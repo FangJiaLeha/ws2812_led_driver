@@ -12,7 +12,8 @@
 
 enum led_bar_cmd_mode
 {
-    BASE_CMD = 0x90
+    BASE_CMD = 0x90,
+    OTHER_CMD = 0xA0
 };
 
 enum led_bar_ctl_mode
@@ -35,7 +36,8 @@ do {                                                    \
 
 #define BAR_CMD_MODE_CHECK(_mode)                       \
 do {                                                    \
-    if (_mode != BASE_CMD) {                            \
+    if (_mode != BASE_CMD &&                            \
+        _mode != OTHER_CMD ) {                          \
         goto set_error;                                 \
     }                                                   \
 } while(0)
