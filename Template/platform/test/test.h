@@ -7,14 +7,14 @@
 
 #define _PWM_TEST               0x00
 
-#define _WS2812_DRV_TSET        0x01
+#define _WS2812_DRV_TSET        0x00
 
 #define _LED_BAR_TEST           0x00
 #if defined(_LED_BAR_TEST) && (_LED_BAR_TEST == 0x01)
 #define _LED_OFF_TEST           0x00
 #define _LED_ON_TEST            0x00
 #define _LED_RGB_TEST           0x00
-#define _LED_BLINK_TEST         0x00
+#define _LED_BLINK_TEST         0x01
 #define _LEFT_BLINK_TEST        0x00
 #define _LED_WATER_TEST         0x00
 #define _LEFT_WATER_TEST        0x00

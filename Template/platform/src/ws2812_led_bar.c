@@ -141,7 +141,7 @@ set_error:
     return ERROR;
 }
 
-static Rtv_Status _ws2812_breath(led_bar_t bar, uint8_t breath_period)
+static Rtv_Status _ws2812_breath(led_bar_t bar, uint16_t breath_period)
 {
     ws2812_bar_t wbar = (ws2812_bar_t)bar;
     if (wbar == NULL) {
@@ -150,14 +150,14 @@ static Rtv_Status _ws2812_breath(led_bar_t bar, uint8_t breath_period)
     wbar->parent.off(&wbar->parent);
     wbar->render_param.render_animation = BREATH;
     wbar->render_param.light_leds = wbar->led_num;
-    wbar->render_param.breath_cnt = breath_period / 10; // 10:单次呼吸周期10ms
+    wbar->render_param.breath_cnt = breath_period / wbar->render_param.breath_singal_period;  // 计算呼吸次数
     memset(wbar->render_param.breath_step, 0, ITEM_NUM(wbar->render_param.breath_step));
     wbar->render_param.breath_step[0] =
-    (wbar->render_param.render_color2[0] - wbar->render_param.render_color1[0]) / wbar->render_param.breath_cnt;
+    (float)(wbar->render_param.render_color2[0] - wbar->render_param.render_color1[0]) / wbar->render_param.breath_cnt;
     wbar->render_param.breath_step[1] =
-    (wbar->render_param.render_color2[1] - wbar->render_param.render_color1[1]) / wbar->render_param.breath_cnt;
+    (float)(wbar->render_param.render_color2[1] - wbar->render_param.render_color1[1]) / wbar->render_param.breath_cnt;
     wbar->render_param.breath_step[2] =
-    (wbar->render_param.render_color2[2] - wbar->render_param.render_color1[2]) / wbar->render_param.breath_cnt;
+    (float)(wbar->render_param.render_color2[2] - wbar->render_param.render_color1[2]) / wbar->render_param.breath_cnt;
     wbar->render_param.show_pos = 0;
     wbar->render_switch = 1;
 
@@ -202,10 +202,13 @@ Rtv_Status init_ws2812_bar(ws2812_bar_t wbar, uint8_t id,
     wsdev = (ws2812_dev_t)priv_data;
     wsdev->ws2812_dev_ops.control(wsdev, WS2812_CTRL_GET_DISBUFF, (void *)&wbar->dis_buff);
 
-    wbar->render_param.light_leds = 10;
+    wbar->render_param.light_leds = 14;
     wbar->render_param.render_color1[0] = 0xFF;
     wbar->render_param.render_color1[1] = 0xFF;
     wbar->render_param.render_color1[2] = 0;
+
+    // 单次呼吸周期初始化
+    wbar->render_param.breath_singal_period = BREATH_SINGAL_PERIOD;
 
     wbar->render_param.render_animation = 0;
     wbar->render_switch = 1;

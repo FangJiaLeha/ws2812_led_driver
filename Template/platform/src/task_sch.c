@@ -125,7 +125,13 @@ void task_server(void)
     uint32_t ms_tick = get_task_ms_tick();
     uint16_t max_ms_tick = get_max_task_ms_tick();
 
-    if ( (ms_tick % max_ms_tick) == get_task_ms_value(TASK_1MS_LEVEL)) {
+    if( (ms_tick % max_ms_tick) ==
+        (max_ms_tick == get_task_ms_value(TASK_AUTO_SET_MS_LEVEL) ? 0 : get_task_ms_value(TASK_AUTO_SET_MS_LEVEL)) ) {
+        tsk_lt = find_task_proccess(TASK_AUTO_SET_MS_LEVEL);
+        if (tsk_lt != NULL) {
+            tsk_lt->task_callback();
+        }
+    } else if ( (ms_tick % max_ms_tick) == get_task_ms_value(TASK_1MS_LEVEL)) {
         tsk_lt = find_task_proccess(TASK_1MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
@@ -133,12 +139,6 @@ void task_server(void)
     } else if( (ms_tick % max_ms_tick) == 
         (max_ms_tick == get_task_ms_value(TASK_10MS_LEVEL) ? 0 : get_task_ms_value(TASK_10MS_LEVEL)) ) {
         tsk_lt = find_task_proccess(TASK_10MS_LEVEL);
-        if (tsk_lt != NULL) {
-            tsk_lt->task_callback();
-        }
-    } else if( (ms_tick % max_ms_tick) == 
-        (max_ms_tick == get_task_ms_value(TASK_AUTO_SET_MS_LEVEL) ? 0 : get_task_ms_value(TASK_AUTO_SET_MS_LEVEL)) ) {
-        tsk_lt = find_task_proccess(TASK_AUTO_SET_MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }

@@ -43,7 +43,7 @@ struct led_bar{
     Rtv_Status (*off)(struct led_bar *bar );
     Rtv_Status (*blink)(struct led_bar *bar, uint8_t mode, uint8_t blink_led_num);
     Rtv_Status (*water)(struct led_bar *bar, uint8_t mode, uint8_t single_led_num, uint8_t move_period);
-    Rtv_Status (*breath)(struct led_bar *bar, uint8_t breath_period);
+    Rtv_Status (*breath)(struct led_bar *bar, uint16_t breath_period);
     void *private;
 };
 typedef struct led_bar* led_bar_t;

@@ -58,8 +58,20 @@ void test_func_enter(void)
         req[6] = 4;
         req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
-        /* 异常颜色测试 */
+        /* 黄色常亮测试 */
         req[6] = 5;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
+    led_bar_control(req, ITEM_NUM(req));
+        /* 青色常亮测试 */
+        req[6] = 6;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
+    led_bar_control(req, ITEM_NUM(req));
+        /* 紫色常亮测试 */
+        req[6] = 7;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
+    led_bar_control(req, ITEM_NUM(req));
+        /* 异常颜色测试 */
+        req[6] = 8;
         req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
         /* 黑色常亮测试 */
@@ -123,15 +135,15 @@ void test_func_enter(void)
         /* 左边 绿色 10个led灯 闪烁周期50ms*/
         req[3] = 0x03;
         req[4] = 0x03;
-        req[5] = 0x20;
+        req[5] = 0x0A;
         req[6] = 0x01;
         req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #else
         /* 右边 蓝色 10个led灯 闪烁周期250ms */
         req[3] = 0x04;
-        req[4] = 0x03;
-        req[5] = 0x0A;
+        req[4] = 0x04;
+        req[5] = 0x14;
         req[6] = 0x05;
         req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
@@ -141,7 +153,23 @@ void test_func_enter(void)
 // 呼吸模式测试
     #if (defined(_LED_BREATH_TEST) && _LED_BREATH_TEST == 0x01)
     req[2] = LED_BREATH;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
+        /* 灯带白色呼吸 呼吸周期 500ms */
+        req[4] = 5;
+        req[5] = 0x01;
+        req[6] = 0x00;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
+    led_bar_control(req, ITEM_NUM(req));
+        /* 灯带黑色->白色呼吸 呼吸周期 1000ms */
+        req[4] = 10;
+        req[5] = 0x00;
+        req[6] = 0x01;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
+    led_bar_control(req, ITEM_NUM(req));
+        /* 灯带红色->绿色呼吸 呼吸周期 800ms */
+        req[4] = 8;
+        req[5] = 0x02;
+        req[6] = 0x03;
+        req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));
     #endif
     #endif

@@ -180,10 +180,11 @@ void data_analysis_task(void)
     uint8_t *recv_data_buff = NULL;
 
     control_i2c(I2C0_DEV, I2C_GET_DATA_LEN, (void *)&recv_data_len);
-    control_i2c(I2C0_DEV, I2C_GET_RECV_BUFF, (void *)recv_data_buff);
     if (recv_data_len != 0) {
         control_i2c(I2C0_DEV, I2C_RESET_DATA_LEN, NULL);
+        control_i2c(I2C0_DEV, I2C_GET_RECV_BUFF, (void *)&recv_data_buff);
         led_bar_control(recv_data_buff, recv_data_len);
+        memset(recv_data_buff, 0, recv_data_len);
     }
 }
 
@@ -302,9 +303,9 @@ static void ctrl_led_breath(led_bar_t led_bar, uint8_t *ctrl_para)
         return;
     }
 
-    breath_period = ctrl_para[2];
-    s_color_index = ctrl_para[1];
-    e_color_index = ctrl_para[0];
+    breath_period = ctrl_para[1];
+    s_color_index = ctrl_para[2];
+    e_color_index = ctrl_para[3];
     if (s_color_index > MAX_COLOR_INDEX || e_color_index > MAX_COLOR_INDEX) {
         return;
     }
@@ -318,7 +319,7 @@ static void ctrl_led_breath(led_bar_t led_bar, uint8_t *ctrl_para)
     wbar->render_param.render_color2[1] = (float)color_table[e_color_index][1];
     wbar->render_param.render_color2[2] = (float)color_table[e_color_index][2];
 
-    // 设置默认单次呼吸周期5ms 呼吸总周期100ms
-    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, 5);
+    // 设置呼吸总周期100ms
+    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, wbar->render_param.breath_singal_period);
     wbar->parent.breath(led_bar, breath_period * 100);
 }

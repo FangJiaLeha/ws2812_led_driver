@@ -11,8 +11,9 @@ struct ws2812_render_param{
     uint8_t render_color1[3];       // 渲染颜色
     uint8_t render_color2[3];       // 用于呼吸模式时 记录终点颜色值
     uint8_t light_leds;             // 渲染显示的灯珠数量
-    uint8_t breath_cnt;             // 记录呼吸次数 呼吸总周期/单次呼吸周期
-    int     breath_step[3];         // 记录rgb三色值步进量
+    uint8_t breath_singal_period;   // 单次呼吸周期
+    uint16_t breath_cnt;            // 记录呼吸次数 呼吸总周期/单次呼吸周期
+    float  breath_step[3];          // 记录rgb三色值步进量
     uint8_t blink_flag:1;           // 用于标记闪烁模式时 前后两次状态
 };
 
@@ -37,6 +38,8 @@ enum ws2812_led_water_blink_bre_mode
     BLINK_RIGHT,
     BREATH
 };
+
+#define BREATH_SINGAL_PERIOD    20      // 设置呼吸模式下 灯条单次呼吸周期 ms
 
 #define WATER_MODE_CHECK(_water_mode)                                          \
 do {                                                                           \
