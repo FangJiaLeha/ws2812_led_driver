@@ -18,11 +18,14 @@ enum i2c_device_index
 
 enum i2c_device_ctl_cmd
 {
-    I2C_GET_DATA_LEN = 0x01,
-    I2C_RESET_DATA_LEN,
+    I2C_GET_RECV_DATA_LEN = 0x01,
+    I2C_RESET_RECV_DATA_LEN,
     I2C_GET_RECV_BUFF,
-    I2C_RESET_DATA_BUFF,
-    I2C_GET_SEND_BUFF
+    I2C_RESET_RECV_BUFF,
+    I2C_GET_SEND_DATA_LEN,
+    I2C_RESET_SEND_DATA_LEN,
+    I2C_GET_SEND_BUFF,
+    I2C_RESET_SEND_BUFF
 };
 #endif
 
@@ -50,11 +53,14 @@ do {                                                        \
 
 #define I2C_DEV_CTL_CMD_CHECK(_i2c_dev_ctl_cmd)             \
 do {                                                        \
-    if (_i2c_dev_ctl_cmd != I2C_GET_DATA_LEN &&             \
-        _i2c_dev_ctl_cmd != I2C_RESET_DATA_LEN &&           \
+    if (_i2c_dev_ctl_cmd != I2C_GET_RECV_DATA_LEN &&        \
+        _i2c_dev_ctl_cmd != I2C_RESET_RECV_DATA_LEN &&      \
         _i2c_dev_ctl_cmd != I2C_GET_RECV_BUFF &&            \
-        _i2c_dev_ctl_cmd != I2C_RESET_DATA_BUFF &&            \
-        _i2c_dev_ctl_cmd != I2C_GET_SEND_BUFF) {          \
+        _i2c_dev_ctl_cmd != I2C_RESET_RECV_BUFF &&          \
+        _i2c_dev_ctl_cmd != I2C_GET_SEND_DATA_LEN &&        \
+        _i2c_dev_ctl_cmd != I2C_RESET_SEND_DATA_LEN &&      \
+        _i2c_dev_ctl_cmd != I2C_GET_SEND_BUFF &&            \
+        _i2c_dev_ctl_cmd != I2C_RESET_SEND_BUFF) {          \
             goto set_error;                                 \
         }                                                   \
 } while(0)

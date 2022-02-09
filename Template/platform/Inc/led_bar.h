@@ -12,11 +12,11 @@
 
 enum led_bar_cmd_mode
 {
-    BASE_CMD = 0x90,
-    OTHER_CMD = 0xA0
+    IAP_CMD = 0x16,
+    BASE_CMD = 0x90
 };
 
-enum led_bar_ctl_mode
+enum led_bar_base_ctrl_mode
 {
     LED_OFF = 0x00,     // 常灭模式
     LED_ON,             // 常亮模式
@@ -26,6 +26,12 @@ enum led_bar_ctl_mode
     LED_BREATH          // 呼吸灯模式
 };
 
+enum led_bar_iap_ctrl_mode
+{
+    SOFT_RESET = 0x01,  // 软复位
+    CHECK_WORK_MODE,    // 查询工作在BOOT/APP模式(1/0)
+    GET_SOFT_VERSION,   // 获取软件版本
+};
 /******************************************************************************/
 #define BAR_REQ_LEN_CHECK(_len)                         \
 do {                                                    \
@@ -37,7 +43,7 @@ do {                                                    \
 #define BAR_CMD_MODE_CHECK(_mode)                       \
 do {                                                    \
     if (_mode != BASE_CMD &&                            \
-        _mode != OTHER_CMD ) {                          \
+        _mode != IAP_CMD ) {                          \
         goto set_error;                                 \
     }                                                   \
 } while(0)
@@ -67,6 +73,30 @@ do {                                                    \
         goto set_error;                                 \
     }                                                   \
 } while(0)
+
+
+/**
+ * @brief      生成程序版本号
+ *
+ * @param      major   主版本号
+ * @param      minor   次版本号
+ * @param      suffix  修订版本号
+ *
+ * @return     返回生成的版本号数据类型为uint32
+ */
+#define MK_PROGRAM_VERSION( major, minor, suffix )			\
+( ( ( (major) & 0xff ) << 16 ) |  ( ( (minor) & 0xff ) << 8 ) | ( (suffix) & 0xff) )
+
+/**
+ * 当前程序版本
+ * 版本编码规则参考@ref
+ * @brief
+ *  V1.0.0  the first version
+ *  V1.1.0  Add the iap analysis
+ */
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 1, 0)
+
+#define MCU_WORK_IN_APP_MODE    0x00
 
 /******************************************************************************/
 Rtv_Status init_led_bars(uint8_t led_bar_index);

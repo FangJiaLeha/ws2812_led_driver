@@ -16,12 +16,22 @@ const uint8_t color_table[][3] = {
 static struct ws2812_bar led_bar1;
 static led_bar_t Lbar[] = {(led_bar_t)&led_bar1};
 
+static uint16_t recv_data_len = 0;
+static uint8_t *recv_data_buff = NULL;
+static uint8_t *set_send_buff = NULL;
+
+// 应用逻辑接口声明
+/* 基本命令控制 */
 static void ctrl_led_off(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_on(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_rgb(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_blink(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_water(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_breath(led_bar_t led_bar, uint8_t *ctrl_para);
+/* IAP命令控制 */
+static void ctrl_mcu_reset(led_bar_t led_bar, uint8_t *ctrl_para);
+static void get_mcu_work_mode(led_bar_t led_bar, uint8_t *ctrl_para);
+static void get_mcu_version(led_bar_t led_bar, uint8_t *ctrl_para);
 
 struct cmd_list
 {
@@ -29,7 +39,8 @@ struct cmd_list
     void (*callback)(led_bar_t led_bar, uint8_t *para);
 };
 
-const struct cmd_list cmds[] = {
+// 基本控制命令及其控制逻辑索引列表
+const struct cmd_list base_cmds[] = {
     /**
      * @brief 控制led关闭
      */
@@ -61,13 +72,42 @@ const struct cmd_list cmds[] = {
     {LED_BREATH, ctrl_led_breath},
 };
 
-static const struct cmd_list *find_proccessor(uint8_t cmd_id)
+// IAP控制命令及其控制逻辑索引列表
+const struct cmd_list iap_cmds[] = {
+    /**
+     * @brief 软复位
+     */
+    {SOFT_RESET, ctrl_mcu_reset},
+
+    /**
+     * @brief 查询MCU工作在boot/app模式下
+     */
+    {CHECK_WORK_MODE, get_mcu_work_mode},
+
+    /**
+     * @brief 获取软件版本
+     */
+    {GET_SOFT_VERSION, get_mcu_version},
+};
+
+static const struct cmd_list *find_proccessor(uint8_t cmd_type, uint8_t cmd_id)
 {
-    uint8_t cmds_num = ITEM_NUM(cmds);
+    uint8_t cmds_num = 0;
+    if (cmd_type == BASE_CMD) {
+        cmds_num = ITEM_NUM(base_cmds);
+    } else if (cmd_type == IAP_CMD) {
+        cmds_num = ITEM_NUM(iap_cmds);
+    }
 
     for (uint8_t cmds_cnt = 0; cmds_cnt < cmds_num; cmds_cnt++) {
-        if (cmd_id == cmds[cmds_cnt].cmd_id) {
-            return &cmds[cmds_cnt];
+        if (cmd_type == BASE_CMD) {
+            if (cmd_id == base_cmds[cmds_cnt].cmd_id) {
+                return &base_cmds[cmds_cnt];
+            }
+        } else if (cmd_type == IAP_CMD) {
+            if (cmd_id == iap_cmds[cmds_cnt].cmd_id) {
+                return &iap_cmds[cmds_cnt];
+            }
         }
     }
     return NULL;
@@ -134,7 +174,10 @@ Rtv_Status init_led_bars(uint8_t led_bar_index)
     }
 
     init_ws2812_bar(&led_bar1, 1, ws2812_bar_set_color, wsdev, WS2812_LED_NUM, 0);
-    
+
+    control_i2c(I2C0_DEV, I2C_GET_RECV_BUFF, (void *)&recv_data_buff);
+    control_i2c(I2C0_DEV, I2C_GET_SEND_BUFF, (void *)&set_send_buff);
+
     return rtv_status;
 }
 
@@ -165,7 +208,7 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
 
     bar = Lbar[bar_id - 1];
     bar_ctrl_para = &req[3];
-    cmd = find_proccessor(bar_ctrl_mode);
+    cmd = find_proccessor(bar_cmd_mode, bar_ctrl_mode);
     if (NULL != cmd) {
         cmd->callback(bar, bar_ctrl_para);
     }
@@ -176,19 +219,16 @@ set_error:
 
 void data_analysis_task(void)
 {
-    uint16_t recv_data_len = 0;
-    uint8_t *recv_data_buff = NULL;
-
-    control_i2c(I2C0_DEV, I2C_GET_DATA_LEN, (void *)&recv_data_len);
+    control_i2c(I2C0_DEV, I2C_GET_RECV_DATA_LEN, (void *)&recv_data_len);
     if (recv_data_len != 0) {
-        control_i2c(I2C0_DEV, I2C_RESET_DATA_LEN, NULL);
-        control_i2c(I2C0_DEV, I2C_GET_RECV_BUFF, (void *)&recv_data_buff);
+        control_i2c(I2C0_DEV, I2C_RESET_RECV_DATA_LEN, NULL);
         led_bar_control(recv_data_buff, recv_data_len);
-        memset(recv_data_buff, 0, recv_data_len);
+        control_i2c(I2C0_DEV, I2C_RESET_RECV_BUFF, (void *)&recv_data_buff);
     }
 }
 
 /******************************************************************************/
+/* 灯条基本命令应用逻辑层(cmd:0x90) */
 static void ctrl_led_off(led_bar_t led_bar, uint8_t *ctrl_para)
 {
     led_bar->off(led_bar);
@@ -322,4 +362,45 @@ static void ctrl_led_breath(led_bar_t led_bar, uint8_t *ctrl_para)
     // 设置呼吸总周期100ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, wbar->render_param.breath_singal_period);
     wbar->parent.breath(led_bar, breath_period * 100);
+}
+
+/* 灯条IAP命令应用逻辑层(cmd:0x16) */
+static void ctrl_mcu_reset(led_bar_t led_bar, uint8_t *ctrl_para)
+{
+    control_i2c(I2C0_DEV, I2C_RESET_SEND_BUFF, (void *)&set_send_buff);
+    control_i2c(I2C0_DEV, I2C_RESET_SEND_DATA_LEN, NULL);
+
+    __disable_irq();
+    NVIC_SystemReset();
+    while(1);
+}
+
+static void get_mcu_work_mode(led_bar_t led_bar, uint8_t *ctrl_para)
+{
+    control_i2c(I2C0_DEV, I2C_RESET_SEND_BUFF, (void *)&set_send_buff);
+    set_send_buff[0] = IAP_CMD;
+    set_send_buff[1] = LED_BAR_INDEX;
+    set_send_buff[2] = CHECK_WORK_MODE;
+    set_send_buff[3] = 0x00;
+    set_send_buff[4] = 0x00;
+    set_send_buff[5] = 0x00;
+    set_send_buff[6] = MCU_WORK_IN_APP_MODE;  // mcu工作在app模式下
+    set_send_buff[7] = 0x00;
+    set_send_buff[8] = CheckXOR(set_send_buff, 0x09);
+    control_i2c(I2C0_DEV, I2C_RESET_SEND_DATA_LEN, NULL);
+}
+
+static void get_mcu_version(led_bar_t led_bar, uint8_t *ctrl_para)
+{
+    control_i2c(I2C0_DEV, I2C_RESET_SEND_BUFF, (void *)&set_send_buff);
+    set_send_buff[0] = IAP_CMD;
+    set_send_buff[1] = LED_BAR_INDEX;
+    set_send_buff[2] = GET_SOFT_VERSION;
+    set_send_buff[3] = 0x00;
+    set_send_buff[4] = (PROGRAM_VERSION >> 16) & 0xFF; // Major 主版本号
+    set_send_buff[5] = (PROGRAM_VERSION >> 8) & 0xFF;  // Minor 次版本号
+    set_send_buff[6] = (PROGRAM_VERSION >> 0) & 0xFF;  // Revision 修订版本号
+    set_send_buff[7] = 0x00;
+    set_send_buff[8] = CheckXOR(set_send_buff, 0x09);
+    control_i2c(I2C0_DEV, I2C_RESET_SEND_DATA_LEN, NULL);
 }

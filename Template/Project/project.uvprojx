@@ -602,6 +602,9 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>IAP</GroupName>
+        </Group>
+        <Group>
           <GroupName>Test</GroupName>
           <Files>
             <File>
