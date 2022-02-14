@@ -293,12 +293,12 @@ static void ctrl_led_blink(led_bar_t led_bar, uint8_t *ctrl_para)
     if (NULL == ctrl_para || NULL == wbar) {
         return;
     }
+    color_index = ctrl_para[1];
     if (color_index > MAX_COLOR_INDEX) {
         return;
     }
     
     blink_mode = ctrl_para[0];
-    color_index = ctrl_para[1];
     blink_led_num = ctrl_para[2];
     blink_period = ctrl_para[3];
     wbar->render_param.render_color1[0] = (float)color_table[color_index][0];
