@@ -4,6 +4,7 @@
 #include "gd32f3x0.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef uint8_t Rtv_Status;
 typedef uint32_t Size_Type;
@@ -33,5 +34,16 @@ struct dev_ops
 #define EINTR                           10  /**< Interrupted system call */
 
 #define ITEM_NUM(_item)        ( sizeof(_item) / sizeof(_item[0]) )
+
+#define IS_PARAMETER_VALID(para)        ( (para) != NULL )
+
+
+#define DDL_ASSERT(_para)       \
+do {                            \
+    if (_para) {                \
+    } else {                    \
+        goto set_error;         \
+    }                           \
+} while(0)
 
 #endif

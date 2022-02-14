@@ -1,27 +1,17 @@
 #ifndef _TEST_H
 #define _TEST_H
 
-#include "common.h"
-#include "led_bar.h"
-#include "task_sch.h"
+#include "drv_flash.h"
+#include "bootloaderinfo.h"
 
-#define _PWM_TEST               0x00
+//==============================================================================
+/* debug config */
+#define _USING_TEST_EN                  (0x00u)
 
-#define _WS2812_DRV_TSET        0x00
-
-#define _LED_BAR_TEST           0x00
-#if defined(_LED_BAR_TEST) && (_LED_BAR_TEST == 0x01)
-#define _LED_OFF_TEST           0x00
-#define _LED_ON_TEST            0x00
-#define _LED_RGB_TEST           0x00
-#define _LED_BLINK_TEST         0x01
-#define _LEFT_BLINK_TEST        0x00
-#define _LED_WATER_TEST         0x00
-#define _LEFT_WATER_TEST        0x00
-#define _LED_BREATH_TEST        0x00
+#if (defined(_USING_TEST_EN) && _USING_TEST_EN == 0x01)
+#define _FLASH_WRERS_TEST_EN            (0x01u)
+#define _RDWR_BOOTLOADERINFO_TEST_EN    (0x01u)
 #endif
-
-#define _TASH_SCH_TEST          0x01
 
 void test_func_enter(void);
 

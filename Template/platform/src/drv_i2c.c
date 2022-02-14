@@ -94,7 +94,7 @@ static struct i2c_dev i2c_devs[] =
             },
             ._periph_cfg = {
                 .clk_speed = I2C_CLK_FRE,
-                .dutycyc = I2C_DTCY_2,
+                .dutycyc = I2C_DTCY_16_9,
                 .mode = I2C_I2CMODE_ENABLE,
                 .addformat = I2C_ADDFORMAT_7BITS,
                 .addr = I2C_DEF_ADDR,
@@ -317,7 +317,7 @@ void init_i2c(uint8_t i2c_addr, uint8_t i2c_buff_size)
 
 void control_i2c(uint8_t i2c_index, int cmd, void *arg)
 {
-    uint8_t **get_recv_buff = NULL, **get_send_buff = NULL;
+    uint8_t **get_send_buff = NULL;
     I2C_DEV_INDEX_CHECK(i2c_index);
     I2C_DEV_CTL_CMD_CHECK(cmd);
 
@@ -330,8 +330,7 @@ void control_i2c(uint8_t i2c_index, int cmd, void *arg)
             i2c_devs[i2c_index-1].read_len = 0;
         break;
         case I2C_GET_RECV_BUFF:
-            get_recv_buff = arg;
-            *get_recv_buff = i2c_devs[i2c_index - 1].recv_buff;
+            memmove((uint8_t *)arg, i2c_devs[i2c_index - 1].recv_buff, i2c_devs[i2c_index - 1].read_len);
         break;
         case I2C_RESET_RECV_BUFF:
             memset(i2c_devs[i2c_index - 1].recv_buff, 0, i2c_devs[i2c_index - 1].malloc_size);

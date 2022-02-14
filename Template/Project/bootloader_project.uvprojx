@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>GD32F330</TargetName>
+      <TargetName>GD32F330_Bootloader</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pArmCC>5060960::V5.06 update 7 (build 960)::.\ARMCC</pArmCC>
@@ -50,7 +50,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>gd32f330_ws2812_driver</OutputName>
+          <OutputName>gd32f330_ws2812_driver_bootloader</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -83,7 +83,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>fromelf --bin !L --output ./ws2812_soft.bin</UserProg1Name>
+            <UserProg1Name>fromelf --bin !L --output ./Bin/gd32f330_ws2812_driver_bootloader.bin</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -277,7 +277,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x1ffff</Size>
+                <Size>0x4fff</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -301,8 +301,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20000000</StartAddress>
-                <Size>0x4fff</Size>
+                <StartAddress>0x20000080</StartAddress>
+                <Size>0x3faf</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test</IncludePath>
+              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap;..\platform\common;..\platform\protocol</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -415,44 +415,9 @@
           <GroupName>Peripherals</GroupName>
           <Files>
             <File>
-              <FileName>gd32f3x0_adc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_adc.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_cec.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_cec.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_cmp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_cmp.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_crc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_crc.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_ctc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_ctc.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_dac.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_dac.c</FilePath>
-            </File>
-            <File>
               <FileName>gd32f3x0_dbg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_dbg.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_dma.c</FilePath>
             </File>
             <File>
               <FileName>gd32f3x0_exti.c</FileName>
@@ -463,11 +428,6 @@
               <FileName>gd32f3x0_fmc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_fmc.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_fwdgt.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_fwdgt.c</FilePath>
             </File>
             <File>
               <FileName>gd32f3x0_gpio.c</FileName>
@@ -500,34 +460,9 @@
               <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_rtc.c</FilePath>
             </File>
             <File>
-              <FileName>gd32f3x0_spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_spi.c</FilePath>
-            </File>
-            <File>
               <FileName>gd32f3x0_syscfg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_syscfg.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_timer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_timer.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_tsi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_tsi.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_usart.c</FilePath>
-            </File>
-            <File>
-              <FileName>gd32f3x0_wwdgt.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Firmware\GD32F3x0_standard_peripheral\Source\gd32f3x0_wwdgt.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -545,29 +480,14 @@
           <GroupName>Platform</GroupName>
           <Files>
             <File>
-              <FileName>ws2812.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\ws2812.c</FilePath>
-            </File>
-            <File>
-              <FileName>ws2812_led_bar.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\ws2812_led_bar.c</FilePath>
-            </File>
-            <File>
               <FileName>board.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\board.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>HardLayerDriver</GroupName>
-          <Files>
             <File>
-              <FileName>drv_pwm.c</FileName>
+              <FileName>drv_flash.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\platform\src\drv_pwm.c</FilePath>
+              <FilePath>..\platform\src\drv_flash.c</FilePath>
             </File>
             <File>
               <FileName>drv_i2c.c</FileName>
@@ -577,32 +497,44 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>AbsLayer</GroupName>
-          <Files>
-            <File>
-              <FileName>led_frame.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\led_frame.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>FuncLayer</GroupName>
-          <Files>
-            <File>
-              <FileName>led_bar.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\led_bar.c</FilePath>
-            </File>
-            <File>
-              <FileName>task_sch.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\task_sch.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
           <GroupName>IAP</GroupName>
+          <Files>
+            <File>
+              <FileName>iap.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\iap\iap.c</FilePath>
+            </File>
+            <File>
+              <FileName>bootloaderinfo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\iap\bootloaderinfo.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>SystemCommon</GroupName>
+          <Files>
+            <File>
+              <FileName>system_common.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\common\system_common.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Protocol</GroupName>
+          <Files>
+            <File>
+              <FileName>i2c_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\protocol\i2c_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\protocol\crc.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Test</GroupName>

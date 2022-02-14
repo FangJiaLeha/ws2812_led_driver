@@ -8,7 +8,7 @@
 #define USING_I2C                   (0x01)
 #define USING_I2C0                  (0x01)
 #if ( defined(USING_I2C) && (USING_I2C == 0x01) )
-#define I2C_CLK_FRE                 (100000)    // default set i2c clk is 100Khz
+#define I2C_CLK_FRE                 (400000)    // default set i2c clk is 400Khz
 #define I2C_DEF_ADDR                (0x41)      // default set i2c addr is 0x41
 enum i2c_device_index
 {
