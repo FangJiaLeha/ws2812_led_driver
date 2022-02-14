@@ -7,6 +7,7 @@
 #include "ws2812_led_bar.h"
 #include "led_frame.h"
 #include "task_sch.h"
+#include "iap_config.h"
 
 #define LED_BAR_INDEX               0x01u
 
@@ -92,9 +93,10 @@ do {                                                    \
  * 版本编码规则参考@ref
  * @brief
  *  V1.0.0  the first version
- *  V1.1.0  Add the iap analysis
+ *  V2.0.0  Add the iap analysis
+ *  V2.1.0  Modify the flash and sram partition and test ok
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 1, 0)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(2, 1, 0)
 
 #define MCU_WORK_IN_APP_MODE    0x00
 
