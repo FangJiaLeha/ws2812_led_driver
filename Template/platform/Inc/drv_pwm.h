@@ -37,6 +37,12 @@
 #define PWM_ONE                     (850u)
 #define PWM_ZERO                    (TIMER_PERIOD - PWM_ONE)
 
+/* TIMER output pwm polarity configuration */
+#define TIMER_PWM_REVERSE           (0x00)
+
+/* TIMER output pwm pin set */
+#define TIMER_PWM_PIN_SET            0x00
+
 enum pwm_cmd_list
 {
     PWM_CMD_ENABLE = 0x00,

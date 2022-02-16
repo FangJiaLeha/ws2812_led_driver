@@ -59,7 +59,11 @@ static struct pwm_dev pwm_devs[] =
         {
             .clk = RCU_GPIOA,
             .port = GPIOA,
+            #if defined(TIMER_PWM_PIN_SET) && (TIMER_PWM_PIN_SET == 0)
+            .pin = GPIO_PIN_0,
+            #else
             .pin = GPIO_PIN_2,
+            #endif
             .alt_func_num = GPIO_AF_2,
             .config = {
                 .mode = GPIO_MODE_AF,
@@ -72,7 +76,11 @@ static struct pwm_dev pwm_devs[] =
         {
             .clk = RCU_TIMER1,
             .periph = TIMER1,
+            #if defined(TIMER_PWM_PIN_SET) && (TIMER_PWM_PIN_SET == 0)
+            .channel = TIMER_CH_0,
+            #else
             .channel = TIMER_CH_2,
+            #endif
             .oc_mode = TIMER_OC_MODE_PWM0,
             .oc_shadow_set = TIMER_OC_SHADOW_ENABLE,
             .dma_trig_src_set = TIMER_DMA_UPD,
@@ -81,7 +89,11 @@ static struct pwm_dev pwm_devs[] =
         {
             .clk = RCU_DMA,
             .channel = DMA_CH1,
+            #if defined(TIMER_PWM_PIN_SET) && (TIMER_PWM_PIN_SET == 0)
+            .per_addr = (uint32_t)&TIMER_CH0CV(TIMER1),
+            #else
             .per_addr = (uint32_t)&TIMER_CH2CV(TIMER1),
+            #endif
             .dma_int_src = DMA_INT_FTF,                 // DMA传输完成中断源设置
             .dma_int_irq = DMA_Channel1_2_IRQn,
         },
@@ -194,7 +206,7 @@ static void _pwm_timer_init(void)
         /* timer channel pulse value set */
         timer_channel_output_pulse_value_config(pwm_devs[pwm_dev_count]._timer_attr.periph,
                                                 pwm_devs[pwm_dev_count]._timer_attr.channel,
-                                                GD32F3X0_PWM_TIMER_SET(TIMER_PERIOD) * 0);
+                                                GD32F3X0_PWM_TIMER_SET(TIMER_PERIOD) * (1 - TIMER_PWM_REVERSE));
         /* timer channel pwm output mode set */
         timer_channel_output_mode_config(pwm_devs[pwm_dev_count]._timer_attr.periph,
                                     pwm_devs[pwm_dev_count]._timer_attr.channel,
@@ -285,10 +297,18 @@ Size_Type write_pwm(uint8_t pwm_channel_index, const void *buffer, uint32_t size
     channel = pwm_devs[pwm_channel_index]._dma_attr.channel;
     for (uint32_t cnt = 0; cnt < size; cnt++) {
         if (data[cnt] == 0) {
+            #if ( defined(TIMER_PWM_REVERSE) && (TIMER_PWM_REVERSE == 0x01) )
             data[cnt] = GD32F3X0_PWM_TIMER_SET(TIMER_PERIOD);
+            #else
+            data[cnt] = 0;
+            #endif
         } else {
             /* 根据高低电平时间转化为对应的比较器值 */
+            #if ( defined(TIMER_PWM_REVERSE) && (TIMER_PWM_REVERSE == 0x01) )
             data[cnt] = GD32F3X0_PWM_TIMER_SET(TIMER_PERIOD) - GD32F3X0_PWM_TIMER_SET(data[cnt]);
+            #else
+            data[cnt] = GD32F3X0_PWM_TIMER_SET(data[cnt]);
+            #endif
         }
     }
 

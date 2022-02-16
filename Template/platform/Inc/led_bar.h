@@ -96,8 +96,9 @@ do {                                                    \
  *  V2.0.0  Add the iap analysis
  *  V2.1.0  Modify the flash and sram partition and test ok
  *  V2.1.1  Fix the led can't blink bug
+ *  V2.2.0  Adapt the head board and modify the pwm output pin to PA0
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(2, 1, 1)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(2, 2, 0)
 
 #define MCU_WORK_IN_APP_MODE    0x00
 
