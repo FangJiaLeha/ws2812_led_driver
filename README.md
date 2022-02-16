@@ -1,3 +1,0 @@
-# LedDriver_GD32F330_TLC59108
-
-使用GD32f330 替换 TLC59108 

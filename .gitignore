@@ -26,3 +26,8 @@ MDK-ARM/MC_F722/
 *.txt
 Template/Project/Objects/*
 *.uvguix.*
+Template/Project/*.uvoptx
+Template/Project/*.scvd
+Template/Project/*.bin
+Template/Project/Listings/*
+Template/Project/*.uvguix.*

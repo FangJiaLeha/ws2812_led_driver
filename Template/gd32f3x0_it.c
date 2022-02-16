@@ -35,9 +35,8 @@ OF SUCH DAMAGE.
 */
 
 #include "gd32f3x0_it.h"
-#include "main.h"
 #include "systick.h"
-#include "soft_tlc59108.h"
+#include "task_sch.h"
 
 /*!
     \brief      this function handles NMI exception
@@ -139,32 +138,25 @@ void PendSV_Handler(void)
 */
 void SysTick_Handler(void)
 {
-
+    task_1ms_tick_increase();
 }
 
 
 
 
-void TIMER15_IRQHandler(void)
-{
-		static uint32_t Cnt_50ms=0;
-		static uint32_t F_50MS=0;
-	
-		
-		if(SET==timer_interrupt_flag_get(TIMER15,TIMER_INT_UP))
-		{
-				
-				if(++Cnt_50ms>=50)
-				{
-						F_50MS=1;
-						Cnt_50ms=0;
-				}
-				
-				LEDx_Blink_Control(Tlc59108_Register,Led_blink_duty,Led_blinkTime);
-				
-				timer_interrupt_flag_clear(TIMER15, TIMER_INT_UP);
-		}
+//void TIMER15_IRQHandler(void)
+//{
+//    static uint32_t Cnt_50ms=0;
+//    static uint32_t F_50MS=0;
 
-}
-
-
+//    if(SET==timer_interrupt_flag_get(TIMER15,TIMER_INT_UP))
+//    {
+//        if(++Cnt_50ms>=50)
+//        {
+//            F_50MS=1;
+//            Cnt_50ms=0;
+//        }
+//        LEDx_Blink_Control(Tlc59108_Register, Led_blink_duty, Led_blinkTime);
+//        timer_interrupt_flag_clear(TIMER15, TIMER_INT_UP);
+//    }
+//}
