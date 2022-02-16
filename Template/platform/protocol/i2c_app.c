@@ -34,7 +34,8 @@ typedef struct crc_1k_ram_type
 
 typedef enum i2c_cmd_list_type
 {
-    CmdCheckBootOrApp = 0x02u,
+    CmdSoftWareReset = 0x01u,
+    CmdCheckBootOrApp,
     CmdGetSoftWareVersion,
     CmdUpdateFileInfo = 0x05u,
     CmdBlockInfo,
@@ -69,6 +70,7 @@ static void cmd_block_info_handler(void *_i2c_app, I2CRxMsgType *_i2c_rx_msg);
 static void cmd_update_data_handler(void *_i2c_app, I2CRxMsgType *_i2c_rx_msg);
 static void cmd_section_crc_handler(void *_i2c_app, I2CRxMsgType *_i2c_rx_msg);
 static void cmd_jump_app_handler(void *_i2c_app, I2CRxMsgType *_i2c_rx_msg);
+static void cmd_software_reset_handler(void *_i2c_app, I2CRxMsgType *_i2c_rx_msg);
 
 /*-------------------------- Private variable defination ---------------------*/
 static I2CAppObject i2c_app = 
@@ -83,7 +85,8 @@ static I2CAppObject i2c_app =
         {CmdGetSoftWareVersion, cmd_get_soft_version_handler},
         {CmdUpdateFileInfo,     cmd_update_fileinfo_handler},
         {CmdBlockInfo,          cmd_block_info_handler},
-        {CmdJumpToApp,          cmd_jump_app_handler}
+        {CmdJumpToApp,          cmd_jump_app_handler},
+        {CmdSoftWareReset,      cmd_software_reset_handler},
     },
 };
 
@@ -337,6 +340,28 @@ static void cmd_jump_app_handler(void *_i2c_app, I2CRxMsgType *_i2c_rx_msg)
     if ( COMPARE_VALUE(checkXor, _i2c_rx_msg->rxData[8]) ) {
         // software reset access the mcu from boot to app
         NVIC_SystemReset();
+    }
+set_error:
+    return;
+}
+
+/**
+ * @Brief   cmd_software_reset_handler() func
+ * @Call    Internal
+ * @Param   _i2c_app The address of @i2c_app
+ * @Param   _i2c_rx_msg The recieved i2c msg
+ * @Note    I2c cmd to mcu software reset.
+ * @RetVal  None
+ */
+static void cmd_software_reset_handler(void *_i2c_app, I2CRxMsgType *_i2c_rx_msg)
+{
+    uint8_t checkXor;
+    DDL_ASSERT(IS_I2CRX_MSG_VALID(_i2c_rx_msg));
+
+    checkXor = get_check_xor(_i2c_rx_msg->rxData, 9);
+
+    if ( COMPARE_VALUE(checkXor, _i2c_rx_msg->rxData[8]) ) {
+        i2c_ack(_i2c_rx_msg);
     }
 set_error:
     return;

@@ -29,7 +29,7 @@
 //==============================================================================
 /* I2C_app config */
 #define RECV_DATA_BASE_SIZE          (1024u)
-#define I2C_CMD_NUM                  (0x07u)
+#define I2C_CMD_NUM                  (0x08u)
 #define IAP_CMD                      (0x16u)
 #define PROGRAM_BYTES_ONCE           (0x05u)
 
