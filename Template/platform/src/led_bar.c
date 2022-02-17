@@ -293,12 +293,12 @@ static void ctrl_led_blink(led_bar_t led_bar, uint8_t *ctrl_para)
     if (NULL == ctrl_para || NULL == wbar) {
         return;
     }
+    color_index = ctrl_para[1];
     if (color_index > MAX_COLOR_INDEX) {
         return;
     }
     
     blink_mode = ctrl_para[0];
-    color_index = ctrl_para[1];
     blink_led_num = ctrl_para[2];
     blink_period = ctrl_para[3];
     wbar->render_param.render_color1[0] = (float)color_table[color_index][0];
@@ -371,6 +371,8 @@ static void ctrl_mcu_reset(led_bar_t led_bar, uint8_t *ctrl_para)
     control_i2c(I2C0_DEV, I2C_RESET_SEND_DATA_LEN, NULL);
 
     __disable_irq();
+    ResetSignature[0] = RESET_SIGNATURE0_UPDATE_FIRMWARE;
+    ResetSignature[1] = RESET_SIGNATURE1_UPDATE_FIRMWARE;
     NVIC_SystemReset();
     while(1);
 }
@@ -381,10 +383,10 @@ static void get_mcu_work_mode(led_bar_t led_bar, uint8_t *ctrl_para)
     set_send_buff[0] = IAP_CMD;
     set_send_buff[1] = LED_BAR_INDEX;
     set_send_buff[2] = CHECK_WORK_MODE;
-    set_send_buff[3] = 0x00;
+    set_send_buff[3] = MCU_WORK_IN_APP_MODE;  // mcu工作在app模式下
     set_send_buff[4] = 0x00;
     set_send_buff[5] = 0x00;
-    set_send_buff[6] = MCU_WORK_IN_APP_MODE;  // mcu工作在app模式下
+    set_send_buff[6] = 0x00;
     set_send_buff[7] = 0x00;
     set_send_buff[8] = CheckXOR(set_send_buff, 0x09);
     control_i2c(I2C0_DEV, I2C_RESET_SEND_DATA_LEN, NULL);
@@ -396,10 +398,10 @@ static void get_mcu_version(led_bar_t led_bar, uint8_t *ctrl_para)
     set_send_buff[0] = IAP_CMD;
     set_send_buff[1] = LED_BAR_INDEX;
     set_send_buff[2] = GET_SOFT_VERSION;
-    set_send_buff[3] = 0x00;
-    set_send_buff[4] = (PROGRAM_VERSION >> 16) & 0xFF; // Major 主版本号
-    set_send_buff[5] = (PROGRAM_VERSION >> 8) & 0xFF;  // Minor 次版本号
-    set_send_buff[6] = (PROGRAM_VERSION >> 0) & 0xFF;  // Revision 修订版本号
+    set_send_buff[3] = (PROGRAM_VERSION >> 16) & 0xFF; // Major 主版本号
+    set_send_buff[4] = (PROGRAM_VERSION >> 8) & 0xFF;  // Minor 次版本号
+    set_send_buff[5] = (PROGRAM_VERSION >> 0) & 0xFF;  // Revision 修订版本号
+    set_send_buff[6] = 0x00;
     set_send_buff[7] = 0x00;
     set_send_buff[8] = CheckXOR(set_send_buff, 0x09);
     control_i2c(I2C0_DEV, I2C_RESET_SEND_DATA_LEN, NULL);

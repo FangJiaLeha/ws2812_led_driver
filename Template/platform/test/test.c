@@ -143,7 +143,7 @@ void test_func_enter(void)
         /* 右边 蓝色 10个led灯 闪烁周期250ms */
         req[3] = 0x04;
         req[4] = 0x04;
-        req[5] = 0x14;
+        req[5] = 0x0A;
         req[6] = 0x05;
         req[8] = CheckXOR(req, ITEM_NUM(req));
     led_bar_control(req, ITEM_NUM(req));

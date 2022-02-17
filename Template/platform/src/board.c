@@ -2,9 +2,14 @@
 #include "systick.h"
 #include "drv_i2c.h"
 #include "led_bar.h"
+#include "iap_config.h"
 
 void init_board(void)
 {
+    /* IAP 相关设置 */
+    __enable_irq();
+    SCB->VTOR = FLASH_APP_ADDR;
+
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
     systick_config();
 
