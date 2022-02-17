@@ -50,7 +50,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>project</OutputName>
+          <OutputName>gd32f330_ws2812_driver</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -83,7 +83,7 @@
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name>fromelf --bin !L --output ./Tlc59108_soft.bin</UserProg1Name>
+            <UserProg1Name>fromelf --bin !L --output ./ws2812_soft.bin</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
@@ -277,7 +277,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0x1ffff</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -302,7 +302,7 @@
               <OCR_RVCT9>
                 <Type>0</Type>
                 <StartAddress>0x20000000</StartAddress>
-                <Size>0x2000</Size>
+                <Size>0x4fff</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc</IncludePath>
+              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -542,37 +542,75 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Doc</GroupName>
+          <GroupName>Platform</GroupName>
           <Files>
             <File>
-              <FileName>readme.txt</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\readme.txt</FilePath>
+              <FileName>ws2812.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\ws2812.c</FilePath>
+            </File>
+            <File>
+              <FileName>ws2812_led_bar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\ws2812_led_bar.c</FilePath>
+            </File>
+            <File>
+              <FileName>board.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\board.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>platform</GroupName>
+          <GroupName>HardLayerDriver</GroupName>
           <Files>
             <File>
-              <FileName>i2c.c</FileName>
+              <FileName>drv_pwm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\platform\src\i2c.c</FilePath>
+              <FilePath>..\platform\src\drv_pwm.c</FilePath>
             </File>
             <File>
-              <FileName>PWM.c</FileName>
+              <FileName>drv_i2c.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\platform\src\PWM.c</FilePath>
+              <FilePath>..\platform\src\drv_i2c.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>AbsLayer</GroupName>
+          <Files>
+            <File>
+              <FileName>led_frame.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\led_frame.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>FuncLayer</GroupName>
+          <Files>
+            <File>
+              <FileName>led_bar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\led_bar.c</FilePath>
             </File>
             <File>
-              <FileName>soft_tlc59108.c</FileName>
+              <FileName>task_sch.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\platform\src\soft_tlc59108.c</FilePath>
+              <FilePath>..\platform\src\task_sch.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>IAP</GroupName>
+        </Group>
+        <Group>
+          <GroupName>Test</GroupName>
+          <Files>
             <File>
-              <FileName>Time.c</FileName>
+              <FileName>test.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\platform\src\Time.c</FilePath>
+              <FilePath>..\platform\test\test.c</FilePath>
             </File>
           </Files>
         </Group>
