@@ -4,7 +4,14 @@
 #include "i2c_app.h"
 
 // 语义化版本开始执行
-uint8_t version[3] = {1, 0, 0};
+/*
+ * 当前程序版本
+ * 版本编码规则参考@ref
+ * @brief
+ *      V1.0.0  the first release version
+ *      V1.0.1  hotfix version that fix i2c overshoot bug by reducing gpio speed
+ */
+uint8_t version[3] = {1, 0, 1};
 
 int main(void)
 {

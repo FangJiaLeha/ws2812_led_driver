@@ -84,7 +84,7 @@ static struct i2c_dev i2c_devs[] =
             ._gpio_cfg = {
                 .mode = GPIO_MODE_AF,
                 .pull_up_down = GPIO_PUPD_PULLUP,
-                .speed = GPIO_OSPEED_50MHZ,
+                .speed = GPIO_OSPEED_2MHZ,
                 .otype = GPIO_OTYPE_OD,
                 .alt_func_num = GPIO_AF_4   // alt func i2c0
             },
