@@ -3,6 +3,9 @@
 #include "iap.h"
 #include "i2c_app.h"
 
+// 语义化版本开始执行
+uint8_t version[3] = {1, 0, 0};
+
 int main(void)
 {
     #if (defined(_USING_TEST_EN) && _USING_TEST_EN == 0x01)
