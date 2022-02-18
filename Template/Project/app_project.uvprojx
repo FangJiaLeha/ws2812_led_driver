@@ -602,7 +602,6 @@
           </Files>
         </Group>
         <Group>
-<<<<<<< HEAD:Template/Project/app_project.uvprojx
           <GroupName>Iap</GroupName>
           <Files>
             <File>
@@ -611,9 +610,6 @@
               <FilePath>..\platform\iap\iap_config.c</FilePath>
             </File>
           </Files>
-=======
-          <GroupName>IAP</GroupName>
->>>>>>> ef8591ce5558790ed3b375842100fe0feac766be:Template/Project/project.uvprojx
         </Group>
         <Group>
           <GroupName>Test</GroupName>
