@@ -97,8 +97,14 @@ do {                                                    \
  *  V2.1.0  Modify the flash and sram partition and test ok
  *  V2.1.1  Fix the led can't blink bug
  *  V2.2.0  Adapt the head board and modify the pwm output pin to PA0
+ *  实时语义化版本:    // 2022.02.18
+ *  V0.0.1  the first version and add the iap analysis
+ *  V0.0.2  Modify the flash and sram partition and test ok
+ *  V0.0.3  Fix the led can't blink bug
+ *  V0.1.0  Adapt the head board and modify the pwm output pin to PA0
+ *  V1.0.0  the first release version
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(2, 2, 0)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 0, 0)
 
 #define MCU_WORK_IN_APP_MODE    0x00
 
