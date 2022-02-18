@@ -103,8 +103,9 @@ do {                                                    \
  *  V0.0.3  Fix the led can't blink bug
  *  V0.1.0  Adapt the head board and modify the pwm output pin to PA0
  *  V1.0.0  the first release version
+ *  V1.0.1  Fix the i2c overshoot bug that reduce the gpio speed
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 0, 0)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 0, 1)
 
 #define MCU_WORK_IN_APP_MODE    0x00
 
