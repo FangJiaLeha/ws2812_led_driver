@@ -104,8 +104,9 @@ do {                                                    \
  *  V0.1.0  Adapt the head board and modify the pwm output pin to PA0
  *  V1.0.0  the first release version
  *  V1.0.1  Fix the i2c overshoot bug that reduce the gpio speed
+ *  V1.0.3  Modify the ws2812 high level time to 780ns base on B09 and new head led board
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 0, 1)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 0, 3)
 
 #define MCU_WORK_IN_APP_MODE    0x00
 

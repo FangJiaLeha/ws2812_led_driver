@@ -34,7 +34,7 @@
 
 /* TIMER period set .unit ns*/
 #define TIMER_PERIOD                (1250u)
-#define PWM_ONE                     (850u)
+#define PWM_ONE                     (780u)
 #define PWM_ZERO                    (TIMER_PERIOD - PWM_ONE)
 
 /* TIMER output pwm polarity configuration */
