@@ -94,7 +94,7 @@ static struct i2c_dev i2c_devs[] =
             },
             ._periph_cfg = {
                 .clk_speed = I2C_CLK_FRE,
-                .dutycyc = I2C_DTCY_16_9,
+                .dutycyc = I2C_DTCY_2,
                 .mode = I2C_I2CMODE_ENABLE,
                 .addformat = I2C_ADDFORMAT_7BITS,
                 .addr = I2C_DEF_ADDR,
