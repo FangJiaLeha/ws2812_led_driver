@@ -6,6 +6,7 @@
 #include "common.h"
 
 #define PWM_CHX_NUM_SET     (0x01u)
+#define TEST_BOARD_B09
 
 #if ( defined(PWM_CHX_NUM_SET) && (PWM_CHX_NUM_SET >= 0x01) )
 #define USING_PWM_CH1
@@ -34,11 +35,19 @@
 
 /* TIMER period set .unit ns*/
 #define TIMER_PERIOD                (1250u)
-#define PWM_ONE                     (780u)
+#if defined(TEST_BOARD_B09)
+#define PWM_ONE                     (850)
+#else
+#define PWM_ONE                     (780)
+#endif
 #define PWM_ZERO                    (TIMER_PERIOD - PWM_ONE)
 
 /* TIMER output pwm polarity configuration */
+#if defined(TEST_BOARD_B09)
+#define TIMER_PWM_REVERSE           (0x01)
+#else
 #define TIMER_PWM_REVERSE           (0x00)
+#endif
 
 /* TIMER output pwm pin set */
 #define TIMER_PWM_PIN_SET            0x00

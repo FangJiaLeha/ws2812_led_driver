@@ -27,22 +27,25 @@ void ws2812_render(void)
     if( WS2812_BAR_DEV->render_param.render_animation == WATER_LEFT) // 左转显示
     {
         for (uint8_t i = 0; i < WS2812_BAR_DEV->render_param.light_leds; i++) {
-            pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->led_num;
+            pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->render_param.water_light_range;
             WS2812_BAR_DEV->dis_buff[pos][0] = WS2812_BAR_DEV->render_param.render_color1[0];
             WS2812_BAR_DEV->dis_buff[pos][1] = WS2812_BAR_DEV->render_param.render_color1[1];
             WS2812_BAR_DEV->dis_buff[pos][2] = WS2812_BAR_DEV->render_param.render_color1[2];
         }
         WS2812_BAR_DEV->render_param.show_pos++;
+        // 保存流水灯数量
+        ws_dev->dev_attr.ctrl_led_num = WS2812_BAR_DEV->render_param.water_light_range;
         ws_dev->ws2812_dev_ops.control(ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL);
     } else if( WS2812_BAR_DEV->render_param.render_animation == WATER_RIGHT ) { // 右转显示
         for (uint8_t i = 0; i < WS2812_BAR_DEV->render_param.light_leds; i++ )
         {
-            pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->led_num;
-            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->led_num)-pos-1][0] = WS2812_BAR_DEV->render_param.render_color1[0];
-            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->led_num)-pos-1][1] = WS2812_BAR_DEV->render_param.render_color1[1];
-            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->led_num)-pos-1][2] = WS2812_BAR_DEV->render_param.render_color1[2];
+            pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->render_param.water_light_range;
+            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->render_param.water_light_range)-pos-1][0] = WS2812_BAR_DEV->render_param.render_color1[0];
+            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->render_param.water_light_range)-pos-1][1] = WS2812_BAR_DEV->render_param.render_color1[1];
+            WS2812_BAR_DEV->dis_buff[(WS2812_BAR_DEV->render_param.water_light_range)-pos-1][2] = WS2812_BAR_DEV->render_param.render_color1[2];
         }
         WS2812_BAR_DEV->render_param.show_pos++;
+        ws_dev->dev_attr.ctrl_led_num = WS2812_BAR_DEV->render_param.water_light_range;
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
     } else if( WS2812_BAR_DEV->render_param.render_animation == BLINK_LEFT ) { // 灯条左端段闪显示
         WS2812_BAR_DEV->render_param.blink_flag = !WS2812_BAR_DEV->render_param.blink_flag;
@@ -60,6 +63,7 @@ void ws2812_render(void)
             WS2812_BAR_DEV->dis_buff[i][1] = color[1];
             WS2812_BAR_DEV->dis_buff[i][2] = color[2];
         }
+        ws_dev->dev_attr.ctrl_led_num = WS2812_BAR_DEV->led_num;
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
     } else if( WS2812_BAR_DEV->render_param.render_animation == BLINK_RIGHT ) { // 灯条右端段闪显示
         WS2812_BAR_DEV->render_param.blink_flag = !WS2812_BAR_DEV->render_param.blink_flag;
@@ -77,6 +81,7 @@ void ws2812_render(void)
             WS2812_BAR_DEV->dis_buff[i][1] = color[1];
             WS2812_BAR_DEV->dis_buff[i][2] = color[2];
         }
+        ws_dev->dev_attr.ctrl_led_num = WS2812_BAR_DEV->led_num;
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
     } else if( WS2812_BAR_DEV->render_param.render_animation == BREATH ) { // 灯条呼吸模式
         color[0] = WS2812_BAR_DEV->render_param.render_color1[0];
@@ -194,6 +199,8 @@ Rtv_Status init_ws2812_bar(ws2812_bar_t wbar, uint8_t id,
     init_led_bar(bar, id, set_color, priv_data);
     wbar->start = start;
     wbar->led_num = led_num;
+    // 增加一个灯珠数量显示可控制功能
+    wbar->ctrl_led_num = 0;
 
     wbar->_parent_off = bar->off;
     bar->off = _ws2812_off;
@@ -202,10 +209,11 @@ Rtv_Status init_ws2812_bar(ws2812_bar_t wbar, uint8_t id,
     wsdev = (ws2812_dev_t)priv_data;
     wsdev->ws2812_dev_ops.control(wsdev, WS2812_CTRL_GET_DISBUFF, (void *)&wbar->dis_buff);
 
-    wbar->render_param.light_leds = 14;
+    wbar->render_param.light_leds = led_num;
     wbar->render_param.render_color1[0] = 0xFF;
     wbar->render_param.render_color1[1] = 0xFF;
     wbar->render_param.render_color1[2] = 0;
+    wbar->render_param.water_light_range = led_num;
 
     // 单次呼吸周期初始化
     wbar->render_param.breath_singal_period = BREATH_SINGAL_PERIOD;

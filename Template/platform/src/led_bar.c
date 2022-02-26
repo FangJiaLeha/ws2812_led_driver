@@ -28,6 +28,7 @@ static void ctrl_led_rgb(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_blink(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_water(led_bar_t led_bar, uint8_t *ctrl_para);
 static void ctrl_led_breath(led_bar_t led_bar, uint8_t *ctrl_para);
+static void cfg_led_attr(led_bar_t led_bar, uint8_t *ctrl_para);
 /* IAP命令控制 */
 static void ctrl_mcu_reset(led_bar_t led_bar, uint8_t *ctrl_para);
 static void get_mcu_work_mode(led_bar_t led_bar, uint8_t *ctrl_para);
@@ -70,6 +71,11 @@ const struct cmd_list base_cmds[] = {
      * @brief 控制led 进入呼吸模式
      */
     {LED_BREATH, ctrl_led_breath},
+
+    /**
+     * @brief 控制led 进入呼吸模式
+     */
+    {LED_SET, cfg_led_attr},
 };
 
 // IAP控制命令及其控制逻辑索引列表
@@ -124,7 +130,7 @@ static Rtv_Status ws2812_bar_set_color( led_bar_t bar, float *color )
     pack.color[2] = (uint8_t)color[2];
 
     pack.start = wbar->start;
-    pack.count = wbar->led_num;
+    pack.count = wbar->ctrl_led_num;
 
     wsdev->ws2812_dev_ops.control(wsdev, WS2812_CTRL_BAR_COLOR, &pack);
     return SUCCESS;
@@ -231,12 +237,21 @@ void data_analysis_task(void)
 /* 灯条基本命令应用逻辑层(cmd:0x90) */
 static void ctrl_led_off(led_bar_t led_bar, uint8_t *ctrl_para)
 {
+    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    if (ctrl_para == NULL || wbar == NULL) {
+        return;
+    }
+
+    // 默认设置
+    wbar->ctrl_led_num = wbar->led_num;
+    wbar->start = 0;
+
     led_bar->off(led_bar);
 }
 
 static void ctrl_led_on(led_bar_t led_bar, uint8_t *ctrl_para)
 {
-    uint8_t color_index;
+    uint8_t color_index, ctrl_on_led_num, ctrl_on_led_pos;
     ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
     float color[3];
     if (NULL == ctrl_para || NULL == wbar) {
@@ -255,15 +270,30 @@ static void ctrl_led_on(led_bar_t led_bar, uint8_t *ctrl_para)
     if (wbar->render_param.render_animation != 0) {
         wbar->render_param.render_animation = 0;
     }
-
     color[0] = (float)color_table[color_index][0];
     color[1] = (float)color_table[color_index][1];
     color[2] = (float)color_table[color_index][2];
+
+    ctrl_on_led_pos = ctrl_para[2];
+    ctrl_on_led_num = ctrl_para[4];
+
+    // 默认设置
+    wbar->ctrl_led_num = wbar->led_num;
+    wbar->start = 0;
+
+    if (ctrl_on_led_num != 0) {
+        wbar->ctrl_led_num = ctrl_on_led_num;
+    }
+    if (ctrl_on_led_pos != 0) {
+        wbar->start = ctrl_on_led_pos;
+    }
+
     led_bar->on(led_bar, color);
 }
 
 static void ctrl_led_rgb(led_bar_t led_bar, uint8_t *ctrl_para)
 {
+    uint8_t ctrl_rgb_led_pos, ctrl_rgb_led_num;
     ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
     float color[3];
     if (NULL == ctrl_para || NULL == wbar) {
@@ -282,6 +312,20 @@ static void ctrl_led_rgb(led_bar_t led_bar, uint8_t *ctrl_para)
     color[0] = (float)ctrl_para[1];
     color[1] = (float)ctrl_para[2];
     color[2] = (float)ctrl_para[3];
+
+    ctrl_rgb_led_pos = ctrl_para[0];
+    ctrl_rgb_led_num = ctrl_para[4];
+
+    // 默认设置
+    wbar->ctrl_led_num = wbar->led_num;
+    wbar->start = 0;
+
+    if (ctrl_rgb_led_num != 0) {
+        wbar->ctrl_led_num = ctrl_rgb_led_num;
+    }
+    if (ctrl_rgb_led_pos != 0) {
+        wbar->start = ctrl_rgb_led_pos;
+    }
 
     led_bar->on(led_bar, color);
 }
@@ -313,7 +357,7 @@ static void ctrl_led_blink(led_bar_t led_bar, uint8_t *ctrl_para)
 static void ctrl_led_water(led_bar_t led_bar, uint8_t *ctrl_para)
 {
     ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
-    uint8_t water_mode, color_index, singal_led_num, move_per;
+    uint8_t water_mode, color_index, singal_led_num, move_per, ctrl_water_led_range;
     if (NULL == ctrl_para || NULL == wbar) {
         return;
     }
@@ -325,10 +369,21 @@ static void ctrl_led_water(led_bar_t led_bar, uint8_t *ctrl_para)
     water_mode = ctrl_para[0];
     singal_led_num = ctrl_para[2];
     move_per = ctrl_para[3];
+    // 增加流水灯范围设置
+    ctrl_water_led_range = ctrl_para[4];
 
     wbar->render_param.render_color1[0] = (float)color_table[color_index][0];
     wbar->render_param.render_color1[1] = (float)color_table[color_index][1];
     wbar->render_param.render_color1[2] = (float)color_table[color_index][2];
+
+    wbar->render_param.water_light_range = wbar->led_num;
+    if (ctrl_water_led_range != 0) {
+        wbar->render_param.water_light_range = (ctrl_water_led_range > wbar->led_num ?
+            wbar->led_num : ctrl_water_led_range);
+        if (singal_led_num != 0 && singal_led_num > ctrl_water_led_range) {
+            wbar->render_param.water_light_range = wbar->led_num;
+        }
+    }
 
     // 设置默认流水周期10ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, move_per * 10);
@@ -364,6 +419,38 @@ static void ctrl_led_breath(led_bar_t led_bar, uint8_t *ctrl_para)
     wbar->parent.breath(led_bar, breath_period * 100);
 }
 
+static void cfg_led_attr(led_bar_t led_bar, uint8_t *ctrl_para)
+{
+    uint8_t cfg_led_num;
+    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    ws2812_dev_t wsdev = (ws2812_dev_t)led_bar->private;
+    if (ctrl_para == NULL || wsdev == NULL || wbar == NULL) {
+        return;
+    }
+
+    // 关闭渲染
+    if (wbar->render_switch != 0) {
+        wbar->render_switch = 0;
+    }
+    // 关闭渲染动画
+    if (wbar->render_param.render_animation != 0) {
+        wbar->render_param.render_animation = 0;
+    }
+
+    cfg_led_num = ctrl_para[0];
+    if (cfg_led_num != 0) {
+        if (cfg_led_num != wbar->led_num) {
+            cfg_led_num = cfg_led_num > WS2812_RETAIN_LED_NUM + WS2812_LED_NUM ?
+                          WS2812_RETAIN_LED_NUM + WS2812_LED_NUM : cfg_led_num;
+            wbar->led_num = cfg_led_num;
+            if (ENOMEM == wsdev->ws2812_dev_ops.control(wsdev, WS2812_LED_NUM_RESET, &cfg_led_num)) {
+                return;
+            }
+        }
+    }
+}
+
+//==============================================================================
 /* 灯条IAP命令应用逻辑层(cmd:0x16) */
 static void ctrl_mcu_reset(led_bar_t led_bar, uint8_t *ctrl_para)
 {

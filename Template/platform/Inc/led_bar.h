@@ -24,7 +24,8 @@ enum led_bar_base_ctrl_mode
     LED_RGB,            // RGB模式
     LED_WATER,          // 流水灯模式
     LED_BLINK,          // 闪烁模式
-    LED_BREATH          // 呼吸灯模式
+    LED_BREATH,         // 呼吸灯模式
+    LED_SET = 0xAA      // 属性设置模式
 };
 
 enum led_bar_iap_ctrl_mode
@@ -63,7 +64,8 @@ do {                                                    \
         _ctrl_mode != LED_RGB &&                        \
         _ctrl_mode != LED_BLINK &&                      \
         _ctrl_mode != LED_WATER &&                      \
-        _ctrl_mode != LED_BREATH) {                     \
+        _ctrl_mode != LED_BREATH &&                     \
+        _ctrl_mode != LED_SET) {                        \
         goto set_error;                                 \
     }                                                   \
 } while(0)
@@ -105,8 +107,9 @@ do {                                                    \
  *  V1.0.0  the first release version
  *  V1.0.1  Fix the i2c overshoot bug that reduce the gpio speed
  *  V1.0.3  Modify the ws2812 high level time to 780ns base on B09 and new head led board
+ *  V1.1.0  Add the new led effect
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 0, 3)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 1, 0)
 
 #define MCU_WORK_IN_APP_MODE    0x00
 

@@ -11,6 +11,7 @@ struct ws2812_render_param{
     uint8_t render_color1[3];       // 渲染颜色
     uint8_t render_color2[3];       // 用于呼吸模式时 记录终点颜色值
     uint8_t light_leds;             // 渲染显示的灯珠数量
+    uint8_t water_light_range;      // 流水灯流水范围
     uint8_t breath_singal_period;   // 单次呼吸周期
     uint16_t breath_cnt;            // 记录呼吸次数 呼吸总周期/单次呼吸周期
     float  breath_step[3];          // 记录rgb三色值步进量
@@ -20,7 +21,8 @@ struct ws2812_render_param{
 struct ws2812_bar
 {
     struct led_bar parent;
-    uint32_t led_num;
+    uint32_t led_num;               // led灯总数
+    uint32_t ctrl_led_num;          // 控制的led数量
     uint32_t start;
     uint8_t render_switch;          // ws2812渲染引擎开关状态：0 停止ws2812私有渲染引擎; 1 开启ws2812私有渲染引擎;
     struct ws2812_render_param render_param; // ws2812 渲染引擎渲染参数

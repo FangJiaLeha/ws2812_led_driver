@@ -7,6 +7,7 @@
 struct ws2812_dev_attr
 {
     uint32_t led_num;
+    uint32_t ctrl_led_num;
     uint16_t *dma_buff;
     uint8_t (*render_buff)[3];
     uint8_t need_update;
@@ -32,9 +33,11 @@ enum ws2812_cmd_list
     WS2812_CTRL_INIT = 0x01,
     WS2812_CTRL_GET_DISBUFF,
     WS2812_CTRL_UPDATE_DEVDATA,
-    WS2812_CTRL_BAR_COLOR
+    WS2812_CTRL_BAR_COLOR,
+    WS2812_LED_NUM_RESET,
 };
 
+#define WS2812_RETAIN_LED_NUM   (46)
 #define WS2812_LED_NUM          (14)
 
 ws2812_dev_t find_ws2812_dev(void);

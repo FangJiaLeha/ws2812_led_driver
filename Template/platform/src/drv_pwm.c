@@ -340,7 +340,8 @@ Size_Type write_pwm(uint8_t pwm_channel_index, const void *buffer, uint32_t size
 
     while(pwm_devs[pwm_channel_index].trans_completion == 0);
 
-    return size;
+    /* return the calculate tansfered bytes */
+    return (size - dma_transfer_number_get(channel));
 }
 
 Rtv_Status control_pwm(uint8_t pwm_channel_index, int cmd, void *arg)
