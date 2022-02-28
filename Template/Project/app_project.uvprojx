@@ -277,7 +277,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8005000</StartAddress>
-                <Size>0x1afff</Size>
+                <Size>0x5000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap</IncludePath>
+              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap;..\platform\function</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -574,6 +574,11 @@
               <FileType>1</FileType>
               <FilePath>..\platform\src\drv_i2c.c</FilePath>
             </File>
+            <File>
+              <FileName>drv_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\drv_flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -598,6 +603,11 @@
               <FileName>task_sch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\task_sch.c</FilePath>
+            </File>
+            <File>
+              <FileName>register_info.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\function\register_info.c</FilePath>
             </File>
           </Files>
         </Group>
