@@ -225,11 +225,46 @@ set_error:
 
 void data_analysis_task(void)
 {
+    uint8_t read_reg_buff[20] = {0}, read_reg_pos = 0, reg_all_num = 0;
     control_i2c(I2C0_DEV, I2C_GET_RECV_DATA_LEN, (void *)&recv_data_len);
     if (recv_data_len != 0) {
-        control_i2c(I2C0_DEV, I2C_RESET_RECV_DATA_LEN, NULL);
-        led_bar_control(recv_data_buff, recv_data_len);
-        control_i2c(I2C0_DEV, I2C_RESET_RECV_BUFF, (void *)&recv_data_buff);
+        // 写操作
+        if (recv_data_len > 0x01) {
+            control_i2c(I2C0_DEV, I2C_RESET_RECV_DATA_LEN, NULL);
+            // 对驱动设备类型寄存器值进行有效性判断
+            if (recv_data_buff[1] != TLC59108DEV &&
+                recv_data_buff[1] != WS2812DEV) {
+                goto set_error;
+            }
+            // 写寄存器
+            control_register(WR_RGE_INFO,
+                             recv_data_buff[0],
+                             &recv_data_buff[1],
+                             recv_data_len - 1);
+            // 根据驱动设备类型寄存器值获取读寄存器偏移地址
+            if (recv_data_buff[1] == TLC59108DEV) {
+                read_reg_pos = 1;
+            } else if (recv_data_buff[1] == WS2812DEV) {
+                control_register(GET_WS2812REG_NUM_INFO, 0, &read_reg_pos, 0);
+            }
+            // 读寄存器到read_reg_buff 用于控制灯条灯效 同时 进行校验
+            control_register(RD_REG_INFO,
+                            recv_data_buff[0] + read_reg_pos,
+                            read_reg_buff,
+                            recv_data_len - 1);
+            if (memcmp(read_reg_buff, &recv_data_buff[1], recv_data_len - 1) != 0) {
+                goto set_error;
+            }
+            led_bar_control(read_reg_buff, recv_data_len - 1);
+        set_error:
+            control_i2c(I2C0_DEV, I2C_RESET_RECV_BUFF, (void *)&recv_data_buff);
+        } else { // 读操作
+            control_register(GET_REG_NUM_INFO, 0, &reg_all_num, 0);
+            control_register(RD_REG_INFO,
+                            recv_data_buff[0],
+                            set_send_buff,
+                            reg_all_num);
+        }
     }
 }
 

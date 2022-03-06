@@ -4,70 +4,107 @@
 #include "common.h"
 #include "drv_i2c.h"
 
-typedef enum reg_type
+typedef enum ctrl_reg_cmd
 {
-	APPID_REG = 0x00,
-	VERSION_REG,
-	CMD_REG = 0x08,
-	PARA_REG0 = 0x20,
-	PARA_REG1 = 0x21,
-	PARA_REG2 = 0x22,
-	PARA_REG3 = 0x23,
-	PARA_REG4 = 0x24,
-	CONFIRM_REG = 0xAA,
-}RegType;
+    /**
+     * @brief 写灯驱寄存器指令
+     *
+     */
+    WR_RGE_INFO = 0x01,
+    /**
+     * @brief 读灯驱寄存器指令
+     *
+     */
+    RD_REG_INFO,
+    /**
+     * @brief 复位灯驱寄存器指令
+     *
+     */
+    RESET_REG_INFO,
+    /**
+     * @brief 获取TLC59108寄存器个数指令
+     *
+     */
+    GET_TLC59108REG_NUM_INFO,
+    /**
+     * @brief 获取WS2812寄存器个数指令
+     *
+     */
+    GET_WS2812REG_NUM_INFO,
+    /**
+     * @brief 获取寄存器总数量指令
+     *
+     */
+    GET_REG_NUM_INFO
+}CtrlRegCmdType;
 
-typedef enum reg_status_type
+typedef enum driver_dev_type
 {
-	STAT_OK = 0x00,
-	STAT_ACCEPTED,
-	STAT_ERR_CONFIG,
-	STAT_ERR_UNKNOWN_CMD,
-}RegStatusType;
+    TLC59108DEV = 0x01,
+    WS2812DEV
+}DriverDevType;
 
-typedef enum control_reg_cmd
-{
-	WR_REG = 0x01,
-	RD_REG
-}ControlRegCmdType;
-
-#define CTRL_REG_CMD_CHECK(_cmd)	\
-do {								\
-	if (_cmd != WR_REG &&			\
-		_cmd != RD_REG ) {			\
-			goto set_error;			\
-		}							\
+#define CTRL_REG_CMD_CHECK(cmd)                 \
+do {                                            \
+    if (cmd != WR_RGE_INFO &&                   \
+        cmd != RD_REG_INFO &&                   \
+        cmd != RESET_REG_INFO &&                \
+        cmd != GET_TLC59108REG_NUM_INFO &&      \
+        cmd != GET_WS2812REG_NUM_INFO &&        \
+        cmd != GET_REG_NUM_INFO ) {             \
+            goto set_error;                     \
+        }                                       \
 } while(0)
 
-#define RD_REG_TYPE_CHECK(_rd_regtype)	\
-do {									\
-	if (_rd_regtype != APPID_REG &&		\
-		_rd_regtype != VERSION_REG &&	\
-		_rd_regtype != CMD_REG &&		\
-		_rd_regtype != PARA_REG0 &&		\
-		_rd_regtype != PARA_REG1 &&		\
-		_rd_regtype != PARA_REG2 &&		\
-		_rd_regtype != PARA_REG3 &&		\
-		_rd_regtype != PARA_REG4 &&		\
-		_rd_regtype != CONFIRM_REG ) {	\
-			goto set_error;				\
-		}								\
+#define REGADDR_CHECK(cmd, regAddr, regMaxNum)          \
+do {                                                    \
+    if ((cmd == WR_RGE_INFO || cmd == RD_REG_INFO) &&   \
+        (regAddr == 0 || regAddr > regMaxNum)) {        \
+        goto set_error;                                 \
+    }                                                   \
 } while(0)
 
-#define WR_REG_TYPE_CHECK(_wr_regtype)	\
-do {									\
-	if (_wr_regtype != VERSION_REG &&	\
-		_wr_regtype != CMD_REG &&		\
-		_wr_regtype != PARA_REG0 &&		\
-		_wr_regtype != PARA_REG1 &&		\
-		_wr_regtype != PARA_REG2 &&		\
-		_wr_regtype != PARA_REG3 &&		\
-		_wr_regtype != PARA_REG4 &&		\
-		_wr_regtype != CONFIRM_REG ) {	\
-			goto set_error;				\
-		}								\
+#define CTRL_REG_SIZE_CHECK(cmd, size)                  \
+do {                                                    \
+    if ((cmd == WR_RGE_INFO || cmd == RD_REG_INFO) &&   \
+        size == 0) {                                    \
+            goto set_error;                             \
+        }                                               \
 } while(0)
-Rtv_Status init_register_info(void);
-void control_register_info(const ControlRegCmdType ctrl_reg_cmd_para, const RegType reg_type_para, void *arg);
+
+#define CTRL_REG_ARG_CHECK(cmd, arg)                    \
+do {                                                    \
+    if ((cmd == WR_RGE_INFO || cmd == RD_REG_INFO) &&   \
+        arg == NULL) {                                  \
+            goto set_error;                             \
+    }                                                   \
+} while(0)
+
+#define SET_DRIVER_TYPE_CHECK(type)         \
+do {                                        \
+    if (type != TLC59108DEV &&              \
+        type != WS2812DEV) {                \
+            goto set_error;                 \
+    }                                       \
+} while(0)
+
+/**
+ * @brief 初始化灯驱寄存器
+ *
+ */
+void init_register(void);
+
+/**
+ * @brief 操作灯驱寄存器
+ *
+ * @param cmd     操作命令
+ * @param regAddr 寄存器地址
+ * @param arg     指针参数 用于传入读写buff
+ * @param size    读写字节数
+ */
+void control_register(const CtrlRegCmdType cmd,
+                      const uint8_t regAddr,
+                      void *arg,
+                      const uint8_t size);
 
 #endif

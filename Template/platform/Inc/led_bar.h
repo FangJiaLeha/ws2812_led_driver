@@ -8,6 +8,7 @@
 #include "led_frame.h"
 #include "task_sch.h"
 #include "iap_config.h"
+#include "register_info.h"
 
 #define LED_BAR_INDEX               0x01u
 
