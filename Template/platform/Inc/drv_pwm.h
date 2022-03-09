@@ -188,7 +188,7 @@ do {                                        \
  */
 #define WS2812_PWM_PERIOD           (1250u)
 #if defined(TEST_BOARD_B09)
-#define WS2812_PWM_ONE              (850)
+#define WS2812_PWM_ONE              (780)
 #else
 #define WS2812_PWM_ONE              (780)
 #endif

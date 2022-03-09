@@ -124,17 +124,30 @@ void ws2812_render(void)
         }
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
 
-        WS2812_BAR_DEV->render_param.color[0] += WS2812_BAR_DEV->render_param.rgb_step[0];
-        WS2812_BAR_DEV->render_param.color[1] += WS2812_BAR_DEV->render_param.rgb_step[1];
-        WS2812_BAR_DEV->render_param.color[2] += WS2812_BAR_DEV->render_param.rgb_step[2];
+        if (WS2812_BAR_DEV->render_param.breath_state == 0) {
+            WS2812_BAR_DEV->render_param.color[0] += WS2812_BAR_DEV->render_param.rgb_step[0];
+            WS2812_BAR_DEV->render_param.color[1] += WS2812_BAR_DEV->render_param.rgb_step[1];
+            WS2812_BAR_DEV->render_param.color[2] += WS2812_BAR_DEV->render_param.rgb_step[2];
+        } else {
+            WS2812_BAR_DEV->render_param.color[0] -= WS2812_BAR_DEV->render_param.rgb_step[0];
+            WS2812_BAR_DEV->render_param.color[1] -= WS2812_BAR_DEV->render_param.rgb_step[1];
+            WS2812_BAR_DEV->render_param.color[2] -= WS2812_BAR_DEV->render_param.rgb_step[2];
+        }
 
         WS2812_BAR_DEV->render_param.breath_cnt--;
         // 关闭渲染
         if (WS2812_BAR_DEV->render_param.breath_cnt == 0) {
             WS2812_BAR_DEV->render_param.breath_cnt = WS2812_BAR_DEV->render_param.breath_timers;
-            WS2812_BAR_DEV->render_param.color[0] = WS2812_BAR_DEV->render_param.render_color1[0];
-            WS2812_BAR_DEV->render_param.color[1] = WS2812_BAR_DEV->render_param.render_color1[1];
-            WS2812_BAR_DEV->render_param.color[2] = WS2812_BAR_DEV->render_param.render_color1[2];
+            WS2812_BAR_DEV->render_param.breath_state = !WS2812_BAR_DEV->render_param.breath_state;
+            if (WS2812_BAR_DEV->render_param.breath_state == 1) {
+                WS2812_BAR_DEV->render_param.color[0] = WS2812_BAR_DEV->render_param.render_color2[0];
+                WS2812_BAR_DEV->render_param.color[1] = WS2812_BAR_DEV->render_param.render_color2[1];
+                WS2812_BAR_DEV->render_param.color[2] = WS2812_BAR_DEV->render_param.render_color2[2];
+            } else {
+                WS2812_BAR_DEV->render_param.color[0] = WS2812_BAR_DEV->render_param.render_color1[0];
+                WS2812_BAR_DEV->render_param.color[1] = WS2812_BAR_DEV->render_param.render_color1[1];
+                WS2812_BAR_DEV->render_param.color[2] = WS2812_BAR_DEV->render_param.render_color1[2];
+            }
         }
     }  else {
     }
@@ -268,6 +281,7 @@ static Rtv_Status _ws2812_breath(led_bar_t bar, uint16_t breath_period)
     wbar->render_param.color[1] = wbar->render_param.render_color1[1];
     wbar->render_param.color[2] = wbar->render_param.render_color1[2];
     wbar->render_param.show_pos = 0;
+    wbar->render_param.breath_state = 0; // 记录呼状态
     wbar->render_switch = 1;
 
     return SUCCESS;

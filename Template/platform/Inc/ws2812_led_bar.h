@@ -15,8 +15,9 @@ struct ws2812_render_param{
     uint8_t breath_singal_period;   // 单次呼吸周期
     uint16_t breath_timers;         // 记录呼吸次数 呼吸总周期/单次呼吸周期
     uint16_t breath_cnt;            // 呼吸次数计数变量
-    float   rgb_step[3];            // 记录rgb三色值步进量
+    float rgb_step[3];            // 记录rgb三色值步进量
     uint8_t blink_flag:1;           // 用于标记闪烁模式时 前后两次状态
+    uint8_t breath_state:1;         // 记录呼吸模式下 呼吸状态 0:呼 1:吸
 };
 
 struct ws2812_bar
