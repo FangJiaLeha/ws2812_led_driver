@@ -276,8 +276,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8005000</StartAddress>
-                <Size>0x5000</Size>
+                <StartAddress>0x8000000</StartAddress>
+                <Size>0x1ffff</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -301,8 +301,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20000080</StartAddress>
-                <Size>0x3faf</Size>
+                <StartAddress>0x20000000</StartAddress>
+                <Size>0x3fff</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -574,11 +574,6 @@
               <FileType>1</FileType>
               <FilePath>..\platform\src\drv_i2c.c</FilePath>
             </File>
-            <File>
-              <FileName>drv_flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\drv_flash.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -608,16 +603,6 @@
               <FileName>register_info.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\function\register_info.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Iap</GroupName>
-          <Files>
-            <File>
-              <FileName>iap_config.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\iap\iap_config.c</FilePath>
             </File>
           </Files>
         </Group>

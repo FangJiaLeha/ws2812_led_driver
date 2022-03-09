@@ -10,8 +10,10 @@ struct ws2812_dev_attr
     uint32_t ctrl_led_num;
     uint16_t *dma_buff;
     uint8_t (*render_buff)[3];
-    uint8_t need_update;
-    uint8_t index;
+    uint8_t index;          // 灯条编号
+    uint8_t index_enable;   // 灯条输出使能
+    uint8_t render_loop:1;  // 用于渲染模式下 控制使能下一次通道输出
+    void *private;
 };
 
 struct ws2812_dev
@@ -40,6 +42,12 @@ enum ws2812_cmd_list
 #define WS2812_RETAIN_LED_NUM   (46)
 #define WS2812_LED_NUM          (14)
 
+/******************************************************************************/
+/**
+ * @brief 提供对外获取ws2812设备地址接口
+ *
+ * @return ws2812_dev_t 返回ws2812设备地址
+ */
 ws2812_dev_t find_ws2812_dev(void);
 
 #endif

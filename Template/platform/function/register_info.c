@@ -158,6 +158,13 @@ typedef struct ws2812_reg
      */
     uint8_t CtrlLedNum;
     /**
+     * @brief 通道N控制灯珠点亮位置设置寄存器
+     *
+     * @note  取值范围：1~灯条总数寄存器设定值
+     *
+     */
+    uint8_t CtrlLedShowPos;
+    /**
      * @brief 通道N控制灯珠电量方向设置寄存器
      *
      * @note  流水灯模式下:
@@ -179,7 +186,7 @@ typedef struct ws2812_reg
      *        其他工作模式下: 参数设置无效
      *
      */
-    uint8_t PeriodConfig;
+    uint16_t PeriodConfig;
 }WS2812RegType;
 
 typedef struct reg_info
@@ -228,8 +235,8 @@ typedef RegInfoType* RegInfoType_t;
 typedef struct reg_dev
 {
     RegInfoType info;
-    void (*init)(void *dev);
-    void (*control)(void *dev,
+    Rtv_Status (*init)(void *dev);
+    Rtv_Status (*control)(void *dev,
                     const CtrlRegCmdType cmd,
                     const uint8_t regAddr,
                     void *arg,
@@ -238,21 +245,22 @@ typedef struct reg_dev
 typedef RegDevType* RegDevType_t;
 
 //======================================================================
-static void _init(void *dev)
+static Rtv_Status _init(void *dev)
 {
     RegDevType_t temp_reg_dev = (RegDevType_t)dev;
     if (temp_reg_dev == NULL) {
-        return;
+        return EINVAL;
     }
-    memset(temp_reg_dev, 0, sizeof(RegInfoType));
+    memset(&temp_reg_dev->info, 0, sizeof(RegInfoType));
     // 获取寄存器数量和寄存器首地址
-    temp_reg_dev->info.RegNum = &temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
+    temp_reg_dev->info.RegNum = (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
                                 &temp_reg_dev->info.DriverDevType + 1;
     temp_reg_dev->info.RegBaseAddr =  &temp_reg_dev->info.DriverDevType;
     temp_reg_dev->info.WS2812RegBaseAddr = &temp_reg_dev->info.WS2812RegInfo.WorkMode;
+    return SUCCESS;
 }
 
-static void _control(void *dev,
+static Rtv_Status _control(void *dev,
                      const CtrlRegCmdType cmd,
                      const uint8_t regAddr,
                      void *arg,
@@ -260,10 +268,10 @@ static void _control(void *dev,
 {
     RegDevType_t temp_reg_dev = (RegDevType_t)dev;
     if (temp_reg_dev == NULL) {
-        return;
+        return EINVAL;
     }
     if (cmd == RD_REG_INFO) {
-        memmove((uint8_t *)arg, temp_reg_dev->info.RegBaseAddr + regAddr - 1, size);
+        memmove((uint8_t *)arg, temp_reg_dev->info.RegBaseAddr + regAddr + 1, size);
     } else if(cmd == WR_RGE_INFO) {
         if (*(uint8_t *)arg == TLC59108DEV) {
             memmove(temp_reg_dev->info.RegBaseAddr + regAddr - 1, (uint8_t *)arg, size);
@@ -274,10 +282,19 @@ static void _control(void *dev,
         }
     } else if(cmd == GET_REG_NUM_INFO) {
         *(uint8_t *)arg = temp_reg_dev->info.RegNum;
+    } else if(cmd == GET_REG_DRIVER_TYPE) {
+        *(uint8_t *)arg = temp_reg_dev->info.DriverDevType;
+    } else if(cmd == GET_TLC59108REG_NUM_INFO) {
+        *(uint8_t *)arg = temp_reg_dev->info.WS2812RegBaseAddr -
+                          &temp_reg_dev->info.TLC59108RegInfo.WorkMode;
+    } else if(cmd == GET_WS2812REG_NUM_INFO) {
+        *(uint8_t *)arg = temp_reg_dev->info.WS2812RegBaseAddr -
+                          (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig + 1;
     } else {
-        memset(&temp_reg_dev->info, 0, GET_REG_NUM(&temp_reg_dev->info.WS2812RegInfo.PeriodConfig,
+        memset(&temp_reg_dev->info, 0, GET_REG_NUM((uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig,
                                                    &temp_reg_dev->info.DriverDevType));
     }
+    return SUCCESS;
 }
 
 //======================================================================
@@ -287,12 +304,15 @@ static RegDevType regDev = {
 };
 
 //======================================================================
-void init_register(void)
+ErrStatus init_register(void)
 {
-    regDev.init((void *)&regDev);
+    if (regDev.init((void *)&regDev) != SUCCESS) {
+        return ERROR;
+    }
+    return SUCCESS;
 }
 
-void control_register(const CtrlRegCmdType cmd,
+ErrStatus control_register(const CtrlRegCmdType cmd,
                       const uint8_t regAddr,
                       void *arg,
                       const uint8_t size)
@@ -302,8 +322,10 @@ void control_register(const CtrlRegCmdType cmd,
     CTRL_REG_ARG_CHECK(cmd, arg);
     CTRL_REG_SIZE_CHECK(cmd, size);
 
-    regDev.control((void *)&regDev, cmd, regAddr, arg, size);
-
+    if (regDev.control((void *)&regDev, cmd, regAddr, arg, size) != SUCCESS) {
+        goto set_error;
+    }
+    return SUCCESS;
 set_error:
-    return;
+    return ERROR;
 }

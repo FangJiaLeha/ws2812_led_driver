@@ -8,13 +8,14 @@
 struct ws2812_render_param{
     uint32_t show_pos;              // 显示灯条起始位置；
     uint8_t render_animation;       // 需要渲染的动画
-    uint8_t render_color1[3];       // 渲染颜色
-    uint8_t render_color2[3];       // 用于呼吸模式时 记录终点颜色值
-    uint8_t light_leds;             // 渲染显示的灯珠数量
-    uint8_t water_light_range;      // 流水灯流水范围
+    uint8_t render_color1[3];       // 渲染起始颜色颜色
+    uint8_t render_color2[3];       // 用于渐变流水灯/呼吸模式时 记录终点颜色值
+    uint8_t color[3];               // 用于在呼吸模式下 操作颜色分量
+    uint8_t render_light_leds;      // 渲染显示的灯珠数量
     uint8_t breath_singal_period;   // 单次呼吸周期
-    uint16_t breath_cnt;            // 记录呼吸次数 呼吸总周期/单次呼吸周期
-    float  breath_step[3];          // 记录rgb三色值步进量
+    uint16_t breath_timers;         // 记录呼吸次数 呼吸总周期/单次呼吸周期
+    uint16_t breath_cnt;            // 呼吸次数计数变量
+    float   rgb_step[3];            // 记录rgb三色值步进量
     uint8_t blink_flag:1;           // 用于标记闪烁模式时 前后两次状态
 };
 
@@ -32,10 +33,12 @@ struct ws2812_bar
 };
 typedef struct ws2812_bar* ws2812_bar_t;
 
-enum ws2812_led_water_blink_bre_mode
+enum ws2812_led_ctrl_mode
 {
-    WATER_LEFT = 0x01,
-    WATER_RIGHT,
+    BASE_WATER_LEFT = 0x01,
+    BASE_WATER_RIGHT,
+    CHANGE_WATER_LEFT,
+    CHANGE_WATER_RIGHT,
     BLINK_LEFT,
     BLINK_RIGHT,
     BREATH
@@ -43,11 +46,18 @@ enum ws2812_led_water_blink_bre_mode
 
 #define BREATH_SINGAL_PERIOD    20      // 设置呼吸模式下 灯条单次呼吸周期 ms
 
-#define WATER_MODE_CHECK(_water_mode)                                          \
-do {                                                                           \
-    if (_water_mode != WATER_LEFT && _water_mode != WATER_RIGHT) {             \
-        goto set_error;                                                        \
-    }                                                                          \
+#define BASE_WATER_MODE_CHECK(_water_mode)                                      \
+do {                                                                            \
+    if (_water_mode != BASE_WATER_LEFT && _water_mode != BASE_WATER_RIGHT) {    \
+        goto set_error;                                                         \
+    }                                                                           \
+} while(0)
+
+#define CHANGE_WATER_MODE_CHECK(_water_mode)                                        \
+do {                                                                                \
+    if (_water_mode != CHANGE_WATER_LEFT && _water_mode != CHANGE_WATER_RIGHT) {    \
+        goto set_error;                                                             \
+    }                                                                               \
 } while(0)
 
 #define BLINK_MODE_CHECK(_blink_mode)                                          \

@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "drv_i2c.h"
+#include "drv_pwm.h"
 
 typedef enum ctrl_reg_cmd
 {
@@ -35,14 +36,13 @@ typedef enum ctrl_reg_cmd
      * @brief 获取寄存器总数量指令
      *
      */
-    GET_REG_NUM_INFO
+    GET_REG_NUM_INFO,
+    /**
+     * @brief 获取驱动寄存器驱动类型指令
+     *
+     */
+    GET_REG_DRIVER_TYPE,
 }CtrlRegCmdType;
-
-typedef enum driver_dev_type
-{
-    TLC59108DEV = 0x01,
-    WS2812DEV
-}DriverDevType;
 
 #define CTRL_REG_CMD_CHECK(cmd)                 \
 do {                                            \
@@ -51,7 +51,8 @@ do {                                            \
         cmd != RESET_REG_INFO &&                \
         cmd != GET_TLC59108REG_NUM_INFO &&      \
         cmd != GET_WS2812REG_NUM_INFO &&        \
-        cmd != GET_REG_NUM_INFO ) {             \
+        cmd != GET_REG_NUM_INFO &&              \
+        cmd != GET_REG_DRIVER_TYPE ) {          \
             goto set_error;                     \
         }                                       \
 } while(0)
@@ -80,31 +81,26 @@ do {                                                    \
     }                                                   \
 } while(0)
 
-#define SET_DRIVER_TYPE_CHECK(type)         \
-do {                                        \
-    if (type != TLC59108DEV &&              \
-        type != WS2812DEV) {                \
-            goto set_error;                 \
-    }                                       \
-} while(0)
-
+/******************************************************************************/
 /**
  * @brief 初始化灯驱寄存器
  *
+ * @return ErrStatus
  */
-void init_register(void);
+ErrStatus init_register(void);
 
 /**
  * @brief 操作灯驱寄存器
  *
- * @param cmd     操作命令
- * @param regAddr 寄存器地址
- * @param arg     指针参数 用于传入读写buff
- * @param size    读写字节数
+ * @param cmd           操作命令
+ * @param regAddr       寄存器地址
+ * @param arg           指针参数 用于传入读写buff
+ * @param size          读写字节数
+ * @return ErrStatus
  */
-void control_register(const CtrlRegCmdType cmd,
-                      const uint8_t regAddr,
-                      void *arg,
-                      const uint8_t size);
+ErrStatus control_register(const CtrlRegCmdType cmd,
+                           const uint8_t regAddr,
+                           void *arg,
+                           const uint8_t size);
 
 #endif

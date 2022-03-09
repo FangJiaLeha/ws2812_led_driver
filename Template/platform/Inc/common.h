@@ -4,6 +4,7 @@
 #include "gd32f3x0.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef uint8_t Rtv_Status;
 typedef uint32_t Size_Type;
@@ -22,15 +23,15 @@ struct dev_ops
 /* test macro */
 #define _TEST_                          0x00
 
-#define EINVAL                          2   /**< Invalid argument */
-#define ETIMEOUT                        3   /**< Timed out */
-#define EFULL                           4   /**< The resource is full */
-#define EEMPTY                          5   /**< The resource is empty */
-#define ENOMEM                          6   /**< No memory */
-#define ENOSYS                          7   /**< No system */
-#define EBUSY                           8   /**< Busy */
-#define EIO                             9   /**< IO error */
-#define EINTR                           10  /**< Interrupted system call */
+#define EINVAL                          2   /* Invalid argument */
+#define ETIMEOUT                        3   /* Timed out */
+#define EFULL                           4   /* The resource is full */
+#define EEMPTY                          5   /* The resource is empty */
+#define ENOMEM                          6   /* No memory */
+#define ENOSYS                          7   /* No system */
+#define EBUSY                           8   /* Busy */
+#define EIO                             9   /* IO error */
+#define EINTR                           10  /* Interrupted system call */
 
 #define ITEM_NUM(_item)        ( sizeof(_item) / sizeof(_item[0]) )
 
