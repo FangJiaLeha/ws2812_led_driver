@@ -67,9 +67,19 @@ enum driver_recv_len
      * @brief 控制WS2812灯条需写入的字节数
      *
      */
-    WS2812_RECV_LEN = 16
+    WS2812_RECV_LEN = 15
 };
 /******************************************************************************/
+/**
+ * @brief 校验
+ *
+ */
+#define XOR_CHECK(value1, value2)               \
+do {                                            \
+    if (value1 != value2) {                     \
+        goto set_error;                         \
+    }                                           \
+} while(0)
 /**
  * @brief 灯效控制参数有效性判断
  *
@@ -161,8 +171,9 @@ do {                                                    \
  *  V1.0.1  Fix the i2c overshoot bug that reduce the gpio speed
  *  V1.0.3  Modify the ws2812 high level time to 780ns base on B09 and new head led board
  *  V1.1.0  Add the new led effect
+ *  V1.2.0  Modify firmware to universal module driver
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 1, 0)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 0)
 
 #define MCU_WORK_IN_APP_MODE    0x00
 

@@ -126,6 +126,20 @@ static Rtv_Status ws2812_bar_set_color(led_bar_t bar, float *color)
     return SUCCESS;
 }
 
+static uint8_t CheckXOR(const uint8_t *data_buff,uint8_t buff_len)
+{
+    uint8_t checkXor = 0;
+    if (NULL == data_buff || buff_len == 0) {
+        return 0;
+    }
+
+    for(uint8_t data_len_cnt = 0; data_len_cnt < buff_len - 1; data_len_cnt++)
+    {
+        checkXor ^= *data_buff++;
+    }
+    return checkXor;
+}
+
 /******************************************************************************/
 Rtv_Status init_led_bars(const uint8_t ws2812_bar_index, const uint8_t tlc59108_bar_num)
 {
@@ -191,30 +205,6 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
 
     bar_driver_type = req[0];
     bar_work_mode = req[1];
-    #if 0
-    uint8_t *bar_ctrl_para = NULL;
-    uint8_t bar_cmd_mode = req[0];
-    uint8_t bar_id = req[1];
-    uint8_t bar_ctrl_mode = req[2];
-    uint8_t bar_cmd_xor = req[8];
-
-    /* req vaild check */
-    BAR_REQ_LEN_CHECK(req_len);
-    BAR_CMD_MODE_CHECK(bar_cmd_mode);
-    BAR_CMD_ID_CHECK(bar_id, ITEM_NUM(Lbar));
-    BAR_CMD_CTL_MODE_CHECK(bar_ctrl_mode);
-    BAR_CMD_XOR_CHECK(bar_cmd_xor, CheckXOR(req, req_len));
-
-    bar = Lbar[bar_id - 1];
-    bar_ctrl_para = &req[3];
-    cmd = find_proccessor(bar_cmd_mode, bar_ctrl_mode);
-    if (NULL != cmd) {
-        cmd->callback(bar, bar_ctrl_para);
-    }
-
-set_error:
-    return;
-    #endif
 
     // 根据灯驱设备类型获取对应的灯条设备句柄
     bar = Lbar[bar_driver_type - 1];
@@ -227,7 +217,12 @@ set_error:
         // 选择控制ws2812灯条序号
         ws2812_bar_index = req[2];
         // 控制ws2812灯珠总数
-        ws2812_bar_ctrl_led_all = req[10];
+        if (bar_work_mode != WS2812_LED_OFF) {
+            ws2812_bar_ctrl_led_all = req[10];
+        } else {
+            // 其他模式切换至熄灭模式时 由于模式不一致 前面会清除参数区 因此本处需赋值最大灯珠数
+            ws2812_bar_ctrl_led_all = ws2812_dev->dev_attr.led_num;
+        }
 
         // WS2812灯条序号及控制灯珠总数有效性判断
         WS2812_DRIVER_CHANNEL_CHECK(ws2812_bar_index);
@@ -264,47 +259,67 @@ set_error:
  */
 void data_analysis_task(void)
 {
-    uint8_t read_reg_buff[20] = {0}, read_reg_pos = 0, reg_all_num = 0;
+    uint8_t read_reg_buff[20] = {0}, read_reg_pos = 0, reg_need_rdwr_num = 0;
     control_i2c(I2C0_DEV, I2C_GET_RECV_DATA_LEN, (void *)&recv_data_len);
     if (recv_data_len != 0) {
         // 写操作
         if (recv_data_len > 0x01) {
             control_i2c(I2C0_DEV, I2C_RESET_RECV_DATA_LEN, NULL);
-            // 对驱动设备类型寄存器值进行有效性判断
-            if (recv_data_buff[1] != TLC59108DEV &&
-                recv_data_buff[1] != WS2812DEV) {
-                goto set_error;
-            }
+            XOR_CHECK(recv_data_buff[recv_data_len - 1], CheckXOR(recv_data_buff, recv_data_len));
+
+            // 获取当前WS2812工作模式寄存器中设置的工作模式
+            control_register(RD_REG_INFO, 0x10, &read_reg_buff[1], 0x01);
+
             // 写寄存器
             control_register(WR_RGE_INFO,
                              recv_data_buff[0],
                              &recv_data_buff[1],
-                             recv_data_len - 1);
-            // 根据驱动设备类型寄存器值获取读寄存器偏移地址
-            if (recv_data_buff[1] == TLC59108DEV) {
-                read_reg_pos = 0;
-            } else {
-                control_register(GET_TLC59108REG_NUM_INFO, 0, &read_reg_pos, 0);
-            }
-            // 读寄存器到read_reg_buff 用于控制灯条灯效 同时 进行校验
+                             recv_data_len - 2);
+
+            // 实时获取寄存器的数据 到发送buff中
+            control_register(RD_REG_INFO,
+                             0x01,
+                             set_send_buff,
+                             0x1E);
+
+            // 尝试获取驱动寄存器中 设置的驱动设备类型
             control_register(GET_REG_DRIVER_TYPE, 0, &read_reg_buff[0], 0x01);
+            // 根据驱动设备类型寄存器值获取读寄存器偏移地址
+            if (read_reg_buff[0] == TLC59108DEV) {
+                control_register(GET_TLC59108REG_POS, 0, &read_reg_pos, 0);
+                control_register(GET_TLC59108REG_NUM_INFO, 0, &reg_need_rdwr_num, 0);
+            } else if (read_reg_buff[0] == WS2812DEV) {
+                control_register(GET_WS2812REG_POS, 0, &read_reg_pos, 0);
+                control_register(GET_WS2812REG_NUM_INFO, 0, &reg_need_rdwr_num, 0);
+                // 获取写入数据后 WS2812工作模式寄存器中的工作模式
+                control_register(RD_REG_INFO, 0x10, &read_reg_buff[2], 0x01);
+                // 若获取的工作模式 和 写入之前的工作模式不一样 则清除之前的工作参数
+                if (read_reg_buff[1] != read_reg_buff[2]) {
+                    control_register(RESET_PARAM_SEG, WS2812_PARA_BASE_ADDR, NULL, 0);
+                }
+            } else {
+                goto set_error;
+            }
+            // 根据寄存器偏移位置 及 需读取寄存器个数 读寄存器参数到read_reg_buff 用于控制灯条灯效
             control_register(RD_REG_INFO,
                              read_reg_pos,
                              &read_reg_buff[1],
-                             recv_data_len - 1);
-            if (memcmp(read_reg_buff, &recv_data_buff[1], recv_data_len - 1) != 0) {
-                goto set_error;
-            }
-            led_bar_control(read_reg_buff, recv_data_len - 1);
+                             reg_need_rdwr_num);
+            led_bar_control(read_reg_buff, reg_need_rdwr_num);
         set_error:
             control_i2c(I2C0_DEV, I2C_RESET_RECV_BUFF, (void *)&recv_data_buff);
-        } else { // 读操作
-            control_register(GET_REG_NUM_INFO, 0, &reg_all_num, 0);
-            control_register(RD_REG_INFO,
-                             recv_data_buff[0],
-                             set_send_buff,
-                             reg_all_num);
         }
+//        else { // 读操作
+//            // 根据读取寄存器的地址 获取该地址及该地址之后所有可读寄存器的数量
+//            control_register(POS_GET_REMAIN_REG_NUM,
+//                            recv_data_buff[0],
+//                            (void *)&reg_need_rdwr_num,
+//                            0);
+//            control_register(RD_REG_INFO,
+//                             recv_data_buff[0],
+//                             set_send_buff,
+//                             reg_need_rdwr_num);
+//        }
     }
 }
 
@@ -368,7 +383,7 @@ static void ctrl_ws2812_on(led_bar_t led_bar, uint8_t *ctrl_para)
         wbar->ctrl_led_num = ctrl_led_num;
     }
     if (ctrl_led_pos != 0) {
-        wbar->start = ctrl_led_pos;
+        wbar->start = ctrl_led_pos - 1;
     }
 
     led_bar->on(led_bar, color);

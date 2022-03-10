@@ -3,6 +3,8 @@
 
 #define GET_REG_NUM(base_addr, end_addr)    (end_addr - base_addr + 1)
 
+#pragma pack (1)
+
 typedef struct bright_ctrl_reg
 {
     /**
@@ -254,7 +256,7 @@ static Rtv_Status _init(void *dev)
     memset(&temp_reg_dev->info, 0, sizeof(RegInfoType));
     // 获取寄存器数量和寄存器首地址
     temp_reg_dev->info.RegNum = (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
-                                &temp_reg_dev->info.DriverDevType + 1;
+                                &temp_reg_dev->info.DriverDevType + 2;
     temp_reg_dev->info.RegBaseAddr =  &temp_reg_dev->info.DriverDevType;
     temp_reg_dev->info.WS2812RegBaseAddr = &temp_reg_dev->info.WS2812RegInfo.WorkMode;
     return SUCCESS;
@@ -271,15 +273,9 @@ static Rtv_Status _control(void *dev,
         return EINVAL;
     }
     if (cmd == RD_REG_INFO) {
-        memmove((uint8_t *)arg, temp_reg_dev->info.RegBaseAddr + regAddr + 1, size);
+        memmove((uint8_t *)arg, temp_reg_dev->info.RegBaseAddr + regAddr - 1, size);
     } else if(cmd == WR_RGE_INFO) {
-        if (*(uint8_t *)arg == TLC59108DEV) {
-            memmove(temp_reg_dev->info.RegBaseAddr + regAddr - 1, (uint8_t *)arg, size);
-        } else {
-            *(temp_reg_dev->info.RegBaseAddr + regAddr - 1) = *(uint8_t *)arg;
-            // WS2812驱动设备需对首地址进行偏移处理
-            memmove(temp_reg_dev->info.WS2812RegBaseAddr, (uint8_t *)arg + 1, size - 1);
-        }
+        memmove(temp_reg_dev->info.RegBaseAddr + regAddr - 1, (uint8_t *)arg, size);
     } else if(cmd == GET_REG_NUM_INFO) {
         *(uint8_t *)arg = temp_reg_dev->info.RegNum;
     } else if(cmd == GET_REG_DRIVER_TYPE) {
@@ -288,17 +284,31 @@ static Rtv_Status _control(void *dev,
         *(uint8_t *)arg = temp_reg_dev->info.WS2812RegBaseAddr -
                           &temp_reg_dev->info.TLC59108RegInfo.WorkMode;
     } else if(cmd == GET_WS2812REG_NUM_INFO) {
-        *(uint8_t *)arg = temp_reg_dev->info.WS2812RegBaseAddr -
-                          (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig + 1;
+        *(uint8_t *)arg = (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
+                          temp_reg_dev->info.WS2812RegBaseAddr + 2;
+    } else if(cmd == GET_TLC59108REG_POS) {
+        *(uint8_t *)arg = &temp_reg_dev->info.TLC59108RegInfo.WorkMode -
+                          temp_reg_dev->info.RegBaseAddr;
+    } else if(cmd == GET_WS2812REG_POS) {
+        *(uint8_t *)arg = temp_reg_dev->info.WS2812RegBaseAddr - temp_reg_dev->info.RegBaseAddr + 1;
+    } else if(cmd == POS_GET_REMAIN_REG_NUM) {
+        *(uint8_t *)arg = (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
+                          (temp_reg_dev->info.RegBaseAddr + regAddr - 1) + 2;
+    } else if(cmd == RESET_PARAM_SEG) {
+        if (temp_reg_dev->info.DriverDevType == WS2812DEV) {
+            memset(temp_reg_dev->info.RegBaseAddr + regAddr - 1, 0, 12);
+        } else if (temp_reg_dev->info.DriverDevType == TLC59108DEV) {
+            memset(temp_reg_dev->info.RegBaseAddr + regAddr - 1, 0, 13);
+        }
+    } else if (cmd == RESET_REG_INFO){
+        memset(&temp_reg_dev->info, 0, temp_reg_dev->info.RegNum);
     } else {
-        memset(&temp_reg_dev->info, 0, GET_REG_NUM((uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig,
-                                                   &temp_reg_dev->info.DriverDevType));
     }
     return SUCCESS;
 }
 
 //======================================================================
-static RegDevType regDev = {
+static volatile RegDevType regDev = {
     .init = _init,
     .control = _control
 };
@@ -315,12 +325,17 @@ ErrStatus init_register(void)
 ErrStatus control_register(const CtrlRegCmdType cmd,
                       const uint8_t regAddr,
                       void *arg,
-                      const uint8_t size)
+                      uint8_t size)
 {
     CTRL_REG_CMD_CHECK(cmd);
     REGADDR_CHECK(cmd, regAddr, regDev.info.RegNum);
     CTRL_REG_ARG_CHECK(cmd, arg);
     CTRL_REG_SIZE_CHECK(cmd, size);
+
+    // size 包括传入的地址数据 因此实际进行判断时 需去掉本身地址的数据
+    if (regAddr + size - 1 > regDev.info.RegNum) {
+        size = regDev.info.RegNum - regAddr + 1;
+    }
 
     if (regDev.control((void *)&regDev, cmd, regAddr, arg, size) != SUCCESS) {
         goto set_error;

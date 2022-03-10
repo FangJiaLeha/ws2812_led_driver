@@ -48,6 +48,10 @@ static struct task_status task_types[] =
         .cur_task_level = TASK_1MS_LEVEL,
         .cur_task_func = NULL
     },
+    {
+        .cur_task_level = 0,
+        .cur_task_func = NULL
+    },
 };
 
 static struct task_list *find_task_proccess(uint8_t _level)
