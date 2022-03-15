@@ -50,7 +50,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>gd32f330_ws2812_driver_app</OutputName>
+          <OutputName>gd32f330_ws2812_driver_V1.x.x</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -276,8 +276,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8005000</StartAddress>
-                <Size>0x1afff</Size>
+                <StartAddress>0x8000000</StartAddress>
+                <Size>0x1ffff</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -301,8 +301,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20000080</StartAddress>
-                <Size>0x3faf</Size>
+                <StartAddress>0x20000000</StartAddress>
+                <Size>0x3fff</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap</IncludePath>
+              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap;..\platform\function</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -599,15 +599,10 @@
               <FileType>1</FileType>
               <FilePath>..\platform\src\task_sch.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Iap</GroupName>
-          <Files>
             <File>
-              <FileName>iap_config.c</FileName>
+              <FileName>register_info.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\platform\iap\iap_config.c</FilePath>
+              <FilePath>..\platform\function\register_info.c</FilePath>
             </File>
           </Files>
         </Group>
