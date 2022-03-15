@@ -76,6 +76,11 @@ static uint32_t get_task_ms_tick(void)
     return task_1ms_tick;
 }
 
+static void set_task_ms_tick(const uint32_t cur_tick)
+{
+    task_1ms_tick = cur_tick;
+}
+
 static uint16_t get_max_task_ms_tick(void)
 {
     uint16_t task_10ms_value = tasks[TASK_10MS_LEVEL].task_ms_value;
@@ -126,30 +131,46 @@ set_error:
 void task_server(void)
 {
     struct task_list *tsk_lt = NULL;
-    uint32_t ms_tick = get_task_ms_tick();
+    uint32_t ms_tick = get_task_ms_tick(), save_enter_tick;
     uint16_t max_ms_tick = get_max_task_ms_tick();
 
     if( (ms_tick % max_ms_tick) ==
         (max_ms_tick == get_task_ms_value(TASK_AUTO_SET_MS_LEVEL) ? 0 : get_task_ms_value(TASK_AUTO_SET_MS_LEVEL)) ) {
+        // 记录进入任务调度时的tick
+        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_AUTO_SET_MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
+        // 执行任务调度后 恢复tick
+        set_task_ms_tick(save_enter_tick);
     } else if ( (ms_tick % max_ms_tick) == get_task_ms_value(TASK_1MS_LEVEL)) {
+        // 记录进入任务调度时的tick
+        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_1MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
+        // 执行任务调度后 恢复tick
+        set_task_ms_tick(save_enter_tick);
     } else if( (ms_tick % max_ms_tick) == 
         (max_ms_tick == get_task_ms_value(TASK_10MS_LEVEL) ? 0 : get_task_ms_value(TASK_10MS_LEVEL)) ) {
+        // 记录进入任务调度时的tick
+        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_10MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
+        // 执行任务调度后 恢复tick
+        set_task_ms_tick(save_enter_tick);
     } else {
+        // 记录进入任务调度时的tick
+        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_DATA_DEAL_0MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
+        // 执行任务调度后 恢复tick
+        set_task_ms_tick(save_enter_tick);
     }
 }

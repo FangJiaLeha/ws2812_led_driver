@@ -1,24 +1,17 @@
 #include "led_frame.h"
+
 /******************************************************************************/
-static Rtv_Status on( led_bar_t bar, float *color )
+static Rtv_Status on(LedBarType_t bar, float *color)
 {
     Rtv_Status ret;
-    bar->param.ctrl_mode = LEDBAR_CTRL_MODE_CONST_ON;
-    bar->param.color1[0] = color[0];
-    bar->param.color1[1] = color[1];
-    bar->param.color1[2] = color[2];
-    ret = bar->set_color( bar, color );
+    ret = bar->set_color(bar, color);
     return ret;
 }
 
-static Rtv_Status off( led_bar_t bar )
+static Rtv_Status off(LedBarType_t bar)
 {
     Rtv_Status ret;
-    bar->param.ctrl_mode = LEDBAR_CTRL_MODE_OFF;
-    bar->param.color1[0] = 0;
-    bar->param.color1[1] = 0;
-    bar->param.color1[2] = 0;
-    ret =  bar->set_color( bar, bar->param.color1);
+    ret =  bar->set_color( bar, (float []){0, 0, 0});
     return ret;
 }
 
@@ -37,20 +30,19 @@ static Rtv_Status breath(struct led_bar *bar, uint16_t breath_period)
 }
 
 /******************************************************************************/
-Rtv_Status init_led_bar(led_bar_t bar,
+Rtv_Status init_led_bar(LedBarType_t bar,
                         uint8_t id,
-                        Rtv_Status (*set_color)(led_bar_t bar, float *color), void *priv_data)
+                        Rtv_Status (*set_color)(LedBarType_t bar, float *color),
+                        void *priv_data)
 {
     bar->id = id;
-    bar->set_color = set_color; // callback the tlc59108_set_color() func in led_bar.c
+    bar->set_color = set_color; // 注册回调函数
     bar->on = on;
     bar->off = off;
     bar->blink = blink;
     bar->water = water;
     bar->breath = breath;
     bar->private = priv_data;
-
-    memset(&bar->param, 0, sizeof( bar->param) + sizeof( bar->state ) );
 
     return SUCCESS;
 }

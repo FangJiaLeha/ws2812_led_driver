@@ -1,7 +1,10 @@
 #include "drv_i2c.h"
-#include "string.h"
 
 //==============================================================================
+/**
+ * @brief I2C设备底层IO属性管理
+ *
+ */
 struct i2c_gpio_attr
 {
     rcu_periph_enum scl_clk;
@@ -11,7 +14,10 @@ struct i2c_gpio_attr
     uint32_t sda_port;
     uint32_t sda_pin;
 };
-
+/**
+ * @brief I2C设备底层IO配置管理
+ *
+ */
 struct i2c_gpio_config_attr
 {
     uint32_t mode;
@@ -20,13 +26,19 @@ struct i2c_gpio_config_attr
     uint32_t alt_func_num;
     uint8_t otype;
 };
-
+/**
+ * @brief I2C设备底层外设属性管理
+ *
+ */
 struct i2c_periph_attr
 {
     rcu_periph_enum clk;
     uint32_t periph;
 };
-
+/**
+ * @brief I2C设备底层外设配置管理
+ *
+ */
 struct i2c_periph_config_attr
 {
     uint32_t clk_speed;
@@ -45,7 +57,10 @@ struct i2c_periph_config_attr
     uint8_t  int_ev_en:1;
     uint8_t  reserved:5;
 };
-
+/**
+ * @brief I2C设备硬件属性管理
+ *
+ */
 struct i2c_hard_attr
 {
     struct i2c_gpio_attr _gpio;
@@ -53,7 +68,10 @@ struct i2c_hard_attr
     struct i2c_periph_attr _periph;
     struct i2c_periph_config_attr _periph_cfg;
 };
-
+/**
+ * @brief I2C设备声明
+ *
+ */
 struct i2c_dev
 {
     struct i2c_hard_attr _hard_attr;
@@ -187,7 +205,12 @@ void I2C0_ER_IRQHandler(void)
 #endif
 
 //==============================================================================
-static void _i2c_io_init(void)
+/**
+ * @brief I2C设备底层IO初始化
+ *
+ * @return Rtv_Status @SUCCESS:初始化成功 @EINVAL:初始化失败
+ */
+static Rtv_Status _i2c_io_init(void)
 {
     uint8_t i2c_dev_num = ITEM_NUM(i2c_devs);
     I2C_DEV_NUM_CHECK(i2c_dev_num);
@@ -225,11 +248,19 @@ static void _i2c_io_init(void)
                     i2c_devs[i2c_dev_cnt]._hard_attr._gpio_cfg.alt_func_num,
                     i2c_devs[i2c_dev_cnt]._hard_attr._gpio.sda_pin);
     }
+    return SUCCESS;
 set_error:
-    return;
+    return EINVAL;
 }
-
-static Rtv_Status _i2c_periph_init(uint8_t _set_i2c_addr, uint8_t _recv_buff_size)
+/**
+ * @brief I2C设备底层外设初始化
+ *
+ * @param _set_i2c_addr     I2C设备地址设置参数
+ * @param _recv_buff_size   I2C设备接收和发送Buff申请内存大小参数
+ * @return Rtv_Status       @SUCCESS:初始化成功 @其他值:初始化失败
+ */
+static Rtv_Status _i2c_periph_init(const uint8_t _set_i2c_addr,
+                                   const uint8_t _recv_buff_size)
 {
     uint8_t i2c_dev_num = ITEM_NUM(i2c_devs);
     uint8_t i2c_default_addr;
@@ -310,18 +341,24 @@ set_error:
 }
 
 //==============================================================================
-void init_i2c(uint8_t i2c_addr, uint8_t i2c_buff_size)
+Rtv_Status init_i2c(const uint8_t i2c_addr,
+                    const uint8_t i2c_buff_size)
 {
-    _i2c_io_init();
-    if (SUCCESS != _i2c_periph_init(i2c_addr, i2c_buff_size) ) {
-        return;
+    if (SUCCESS != _i2c_io_init()) {
+        return ERROR;
     }
+
+    if (SUCCESS != _i2c_periph_init(i2c_addr, i2c_buff_size) ) {
+        return ERROR;
+    }
+    return SUCCESS;
 }
 
-void control_i2c(uint8_t i2c_index, int cmd, void *arg)
+Rtv_Status control_i2c(const uint8_t i2c_index,
+                       const CtrlI2CDevCmdType cmd,
+                       void *arg)
 {
-    uint8_t **get_recv_buff = NULL, **get_send_buff = NULL;
-    I2C_DEV_INDEX_CHECK(i2c_index);
+    I2C_DEV_INDEX_CHECK(i2c_index, ITEM_NUM(i2c_devs));
     I2C_DEV_CTL_CMD_CHECK(cmd);
 
     switch(cmd)
@@ -330,34 +367,22 @@ void control_i2c(uint8_t i2c_index, int cmd, void *arg)
             *(uint16_t *)arg = i2c_devs[i2c_index - 1].read_len;
         break;
         case I2C_RESET_RECV_DATA_LEN:
-            i2c_devs[i2c_index-1].read_len = 0;
+            i2c_devs[i2c_index - 1].read_len = 0;
         break;
         case I2C_GET_RECV_BUFF:
-            get_recv_buff = arg;
-            *get_recv_buff = i2c_devs[i2c_index - 1].recv_buff;
+            *(uint8_t **)arg = i2c_devs[i2c_index - 1].recv_buff;
         break;
         case I2C_RESET_RECV_BUFF:
             memset(i2c_devs[i2c_index - 1].recv_buff, 0, i2c_devs[i2c_index - 1].malloc_size);
         break;
-        case I2C_GET_SEND_DATA_LEN:
-            *(uint16_t *)arg = i2c_devs[i2c_index - 1].send_cnt;
-        break;
-        case I2C_RESET_SEND_DATA_LEN:
-            i2c_devs[i2c_index-1].send_cnt = 0;
-        break;
         case I2C_GET_SEND_BUFF:
-            get_send_buff = arg;
-            *get_send_buff = i2c_devs[i2c_index - 1].send_buff;
-        break;
-        case I2C_RESET_SEND_BUFF:
-            memset(i2c_devs[i2c_index - 1].send_buff, 0, i2c_devs[i2c_index - 1].malloc_size);
+            *(uint8_t **)arg = i2c_devs[i2c_index - 1].send_buff;
         break;
         default:
+            goto set_error;
         break;
     }
+    return SUCCESS;
 set_error:
-    return;
+    return EINVAL;
 }
-
-
-

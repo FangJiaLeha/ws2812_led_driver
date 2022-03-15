@@ -4,6 +4,7 @@
 #include "gd32f3x0.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 typedef uint8_t Rtv_Status;

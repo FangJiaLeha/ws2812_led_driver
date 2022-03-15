@@ -56,14 +56,13 @@ typedef enum ctrl_reg_cmd
      * @brief 根据读取寄存器位置获取其后寄存器数量指令
      *
      */
-    POS_GET_REMAIN_REG_NUM,
-    /**
-     * @brief 根据读取寄存器位置获取其后寄存器数量指令
-     *
-     */
     RESET_PARAM_SEG
 }CtrlRegCmdType;
 
+/**
+ * @brief WS2812/TLC59108寄存器参数区地址偏移
+ *
+ */
 #define WS2812_PARA_BASE_ADDR                   (0x13u)
 #define TLC59108_PARA_BASE_ADDR                 (0x03u)
 
@@ -77,8 +76,7 @@ do {                                            \
         cmd != GET_REG_NUM_INFO &&              \
         cmd != GET_REG_DRIVER_TYPE &&           \
         cmd != GET_TLC59108REG_POS &&           \
-        cmd != GET_WS2812REG_POS &&             \
-        cmd != POS_GET_REMAIN_REG_NUM &&        \
+        cmd != GET_WS2812REG_POS &&        \
         cmd != RESET_PARAM_SEG ) {              \
             goto set_error;                     \
         }                                       \
@@ -112,7 +110,7 @@ do {                                                    \
 /**
  * @brief 初始化灯驱寄存器
  *
- * @return ErrStatus
+ * @return ErrStatus        @SUCCESS:初始化灯驱寄存器成功 @ERROR:初始化灯驱寄存器失败
  */
 ErrStatus init_register(void);
 
@@ -120,7 +118,7 @@ ErrStatus init_register(void);
  * @brief 操作灯驱寄存器
  *
  * @param cmd           操作命令
- * @param regAddr       寄存器地址
+ * @param regAddr       寄存器地址 该地址起始位置0x01
  * @param arg           指针参数 用于传入读写buff
  * @param size          读写字节数
  * @return ErrStatus

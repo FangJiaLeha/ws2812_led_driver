@@ -30,6 +30,10 @@
     #endif
 #endif
 
+/**
+ * @brief 提取PWM通用配置属性
+ *
+ */
 static GeneralPwmCfgType pwm_cfg_stc = {
     .gpio_cfg = {
         .mode = GPIO_MODE_AF,
@@ -48,6 +52,10 @@ static GeneralPwmCfgType pwm_cfg_stc = {
     }
 };
 
+/**
+ * @brief PWM输出通道
+ *
+ */
 static PwmDriverChannelType pwm_channels[] = {
     #ifdef USING_PWM_CH0
     {
@@ -244,8 +252,8 @@ static Rtv_Status _control_pwm(void *pwm_dev,
 static struct pwm_dev pwm_devs =
 {
     .driver_channel = pwm_channels,
-    .driver_channel_cur = 1,    // 默认设置为第一个PWM通道
-    .driver_channel_num = PWM_CHX_NUM_SET,
+    .driver_channel_cur = PWM_CHX_INDEX_INIT_SET,    // 默认设置为第一个PWM通道
+    .driver_channel_num = PWM_CHX_NUM_SET,           // PWM输出通道总数
     .driver_type = WS2812DEV,
     .trans_completion = 0,
     .init = _init_hard_pwm,
@@ -295,26 +303,29 @@ void DMA_Channel1_2_IRQHandler(void)
  */
 static Rtv_Status _pwm_io_init(PwmDevType_t pwm_dev_para)
 {
+    uint32_t gpio_periph, gpio_pin;
     if (pwm_dev_para == NULL) {
         return EINVAL;
     }
     for (uint8_t pwm_dev_chnl_cnt = 0; pwm_dev_chnl_cnt < pwm_dev_para->driver_channel_num; pwm_dev_chnl_cnt++) {
+        gpio_periph = pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.port;
+        gpio_pin = pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.pin;
         /* gpio clk set */
         rcu_periph_clock_enable(pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.clk);
         /* gpio mode set */
-        gpio_mode_set(pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.port,
+        gpio_mode_set(gpio_periph,
                       pwm_cfg_stc.gpio_cfg.mode,
                       pwm_cfg_stc.gpio_cfg.pull_up_down,
-                      pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.pin);
+                      gpio_pin);
         /* gpio output set */
-        gpio_output_options_set(pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.port,
+        gpio_output_options_set(gpio_periph,
                                 pwm_cfg_stc.gpio_cfg.otype,
                                 pwm_cfg_stc.gpio_cfg.speed,
-                                pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.pin);
+                                gpio_pin);
         /* gpio alt func set */
-        gpio_af_set(pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.port,
+        gpio_af_set(gpio_periph,
                     pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.alt_func_num,
-                    pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._gpio_attr.pin);
+                    gpio_pin);
     }
     return SUCCESS;
 }
@@ -389,7 +400,7 @@ static Rtv_Status _pwm_timer_init(PwmDevType_t pwm_dev_para)
         if (pwm_dev_para->driver_type == WS2812DEV) {
             /* disable the timer */
             timer_disable(timer_periph);
-        } else {
+        } else if (pwm_dev_para->driver_type == TLC59108DEV){
             /* disable the timer */
             timer_enable(timer_periph);
         }
@@ -407,9 +418,11 @@ static Rtv_Status _pwm_dma_init(PwmDevType_t pwm_dev_para)
     dma_channel_enum dma_channel;
     dma_parameter_struct dma_init_struct;
 
-    // TLC59108驱动设备不需要配置dma
-    if (pwm_dev_para->driver_type == TLC59108DEV || pwm_dev_para == NULL) {
+    if (pwm_dev_para == NULL) {
         return EINVAL;
+    } else if (pwm_dev_para->driver_type == TLC59108DEV) {
+        // TLC59108驱动 PWM设备不需要配置通道dma
+        return SUCCESS;
     }
     
     for (uint8_t pwm_dev_chnl_cnt = 0; pwm_dev_chnl_cnt < pwm_dev_para->driver_channel_num; pwm_dev_chnl_cnt++) {
@@ -460,10 +473,17 @@ static Rtv_Status _pwm_dma_init(PwmDevType_t pwm_dev_para)
  * @brief PWM设备内置初始化方法
  *
  * @param pwm_dev               PWM设备地址
+ * @return Rtv_Status           @SUCCESS:初始化PWM成功 @ERROR:初始化PWM失败
+ *
+ * @note  初始化PWM相关的IO引脚、定时器以及DMA配置
+ *        同时初始化完成量和当前PWM的信号输出通道
  */
 static Rtv_Status _init_hard_pwm(void *pwm_dev)
 {
     PwmDevType_t pwm_dev_para = (PwmDevType_t)pwm_dev;
+    if (pwm_dev_para == NULL) {
+        goto set_error;
+    }
 
     if (_pwm_io_init(pwm_dev_para) != SUCCESS) {
         goto set_error;
@@ -475,7 +495,7 @@ static Rtv_Status _init_hard_pwm(void *pwm_dev)
         goto set_error;
     }
     pwm_dev_para->trans_completion = 0;
-    pwm_dev_para->driver_channel_cur = 1;
+    pwm_dev_para->driver_channel_cur = PWM_CHX_INDEX_INIT_SET;
 
     return SUCCESS;
 set_error:

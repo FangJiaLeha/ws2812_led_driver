@@ -117,6 +117,7 @@ typedef struct pwm_dev
     /**
      * @brief 用于保存WS2812驱动设备下 当前选择的PWM波输出通道
      *
+     * @note  该通道主要用于DMA搬运占空比之后 在中断函数中清除该通道标志位等状态
      */
     uint8_t driver_channel_cur;
     /**
@@ -155,10 +156,11 @@ typedef struct pwm_channel_base_attr
 typedef PWMChannelBaseAttrType* PWMChannelBaseAttrType_t;
 /******************************************************************************/
 /**
- * @brief PWM通道数量设置
+ * @brief PWM通道数量及初始化PWM信号输出通道设置
  *
  */
-#define PWM_CHX_NUM_SET     (0x01u)
+#define PWM_CHX_NUM_SET             (0x01u)
+#define PWM_CHX_INDEX_INIT_SET      (0x01u)
 
 #define SET_DRIVER_TYPE_CHECK(type)         \
 do {                                        \

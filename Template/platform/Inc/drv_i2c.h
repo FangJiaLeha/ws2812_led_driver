@@ -16,17 +16,14 @@ enum i2c_device_index
     I2C1_DEV,
 };
 
-enum i2c_device_ctl_cmd
+typedef enum i2c_device_ctl_cmd
 {
     I2C_GET_RECV_DATA_LEN = 0x01,
     I2C_RESET_RECV_DATA_LEN,
     I2C_GET_RECV_BUFF,
     I2C_RESET_RECV_BUFF,
-    I2C_GET_SEND_DATA_LEN,
-    I2C_RESET_SEND_DATA_LEN,
-    I2C_GET_SEND_BUFF,
-    I2C_RESET_SEND_BUFF
-};
+    I2C_GET_SEND_BUFF
+}CtrlI2CDevCmdType;
 #endif
 
 #define I2C_DEV_NUM_CHECK(_num)                             \
@@ -43,10 +40,10 @@ do {                                                        \
     }                                                       \
 } while(0)
 
-#define I2C_DEV_INDEX_CHECK(_i2c_dev_index)                 \
+#define I2C_DEV_INDEX_CHECK(_i2c_dev_index, i2c_dev_num)    \
 do {                                                        \
-    if (_i2c_dev_index != I2C0_DEV &&                       \
-        _i2c_dev_index != I2C1_DEV ) {                      \
+    if (_i2c_dev_index > i2c_dev_num ||                     \
+        _i2c_dev_index == 0) {                              \
         goto set_error;                                     \
     }                                                       \
 } while(0)
@@ -57,17 +54,32 @@ do {                                                        \
         _i2c_dev_ctl_cmd != I2C_RESET_RECV_DATA_LEN &&      \
         _i2c_dev_ctl_cmd != I2C_GET_RECV_BUFF &&            \
         _i2c_dev_ctl_cmd != I2C_RESET_RECV_BUFF &&          \
-        _i2c_dev_ctl_cmd != I2C_GET_SEND_DATA_LEN &&        \
-        _i2c_dev_ctl_cmd != I2C_RESET_SEND_DATA_LEN &&      \
-        _i2c_dev_ctl_cmd != I2C_GET_SEND_BUFF &&            \
-        _i2c_dev_ctl_cmd != I2C_RESET_SEND_BUFF) {          \
+        _i2c_dev_ctl_cmd != I2C_GET_SEND_BUFF) {            \
             goto set_error;                                 \
         }                                                   \
 } while(0)
 
 //==============================================================================
-void init_i2c(uint8_t i2c_addr, uint8_t i2c_buff_size);
-void control_i2c(uint8_t i2c_index, int cmd, void *arg);
+/**
+ * @brief 初始化I2C
+ *
+ * @param i2c_addr          I2C地址设置参数
+ * @param i2c_buff_size     I2C底层发送和接收Buff开辟空间大小参数
+ * @return Rtv_Status       @SUCCESS:初始化成功 @ERROR:初始化失败
+ */
+Rtv_Status init_i2c(const uint8_t i2c_addr,
+                    const uint8_t i2c_buff_size);
 
+/**
+ * @brief 控制I2C
+ *
+ * @param i2c_index         I2C设备序号(默认为I2C0 0x01)
+ * @param cmd               控制命令@CtrlI2CDevCmdType
+ * @param arg               控制参数
+ * @return Rtv_Status       @SUCCESS:控制i2c成功 @其他:控制i2c失败
+ */
+Rtv_Status control_i2c(const uint8_t i2c_index,
+                       const CtrlI2CDevCmdType cmd,
+                       void *arg);
 #endif
 

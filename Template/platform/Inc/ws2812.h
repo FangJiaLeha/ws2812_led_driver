@@ -16,12 +16,12 @@ struct ws2812_dev_attr
     void *private;
 };
 
-struct ws2812_dev
+typedef struct ws2812_dev
 {
     struct ws2812_dev_attr dev_attr;
     struct dev_ops ws2812_dev_ops;
-};
-typedef struct ws2812_dev* ws2812_dev_t;
+}WS2812DevType;
+typedef WS2812DevType* WS2812DevType_t;
 
 struct ws2812_bar_ctrlpack
 {
@@ -39,8 +39,8 @@ enum ws2812_cmd_list
     WS2812_LED_NUM_RESET,
 };
 
-#define WS2812_RETAIN_LED_NUM   (46)
-#define WS2812_LED_NUM          (14)
+#define WS2812_RETAIN_LED_NUM           (46)
+#define WS2812_LED_DEFAULT_NUM          (14)
 
 /******************************************************************************/
 /**
@@ -48,6 +48,6 @@ enum ws2812_cmd_list
  *
  * @return ws2812_dev_t 返回ws2812设备地址
  */
-ws2812_dev_t find_ws2812_dev(void);
+WS2812DevType_t find_ws2812_dev(void);
 
 #endif

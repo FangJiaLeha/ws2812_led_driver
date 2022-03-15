@@ -7,7 +7,7 @@
  * @brief 发送给WS2812的数据buff
  *
  */
-uint16_t pulse_buff[RESET_BITS_CNT*2 + (WS2812_LED_NUM + WS2812_RETAIN_LED_NUM) * 3 * 8] = {0};
+uint16_t pulse_buff[RESET_BITS_CNT*2 + (WS2812_LED_DEFAULT_NUM + WS2812_RETAIN_LED_NUM) * 3 * 8] = {0};
 
 /******************************************************************************/
 /**
@@ -18,14 +18,14 @@ uint16_t pulse_buff[RESET_BITS_CNT*2 + (WS2812_LED_NUM + WS2812_RETAIN_LED_NUM) 
  * @param pwm_pulse         WS2812的驱动PWM波占空比
  * @return Rtv_Status       返回值 @SUCCESS:初始化成功 @其他:初始化失败
  */
-static Rtv_Status init_ws2812_hardware(ws2812_dev_t ws_dev_para,
-                                       uint32_t pwm_period,
-                                       uint32_t pwm_pulse)
+static Rtv_Status init_ws2812_hardware(WS2812DevType_t ws_dev_para,
+                                       const uint32_t pwm_period,
+                                       const uint32_t pwm_pulse)
 {
     PwmDevType_t temp_pwm_dev = NULL;
     Rtv_Status rtv_status = SUCCESS;
     PWMChannelBaseAttrType ws2812_pwm_channel_base_attr = {0};
-    uint8_t ws2812_index = 1;
+    uint8_t ws2812_index;
 
     if (ws_dev_para == NULL) {
         return EINVAL;
@@ -53,7 +53,7 @@ static Rtv_Status init_ws2812_hardware(ws2812_dev_t ws_dev_para,
  * @param count         控制WS2812的灯数
  * @return Rtv_Status   返回值 @SUCCESS:更新成功 @其他值:更新失败
  */
-static Rtv_Status _update_led_data(ws2812_dev_t ws_dev, uint32_t count)
+static Rtv_Status _update_led_data(WS2812DevType_t ws_dev, uint32_t count)
 {
     PwmDevType_t temp_pwm_dev = NULL;
     Size_Type write_bytes;
@@ -137,7 +137,7 @@ static Rtv_Status _update_led_data(ws2812_dev_t ws_dev, uint32_t count)
  */
 static Rtv_Status _init(void *dev)
 {
-    ws2812_dev_t wsdev = (ws2812_dev_t)dev;
+    WS2812DevType_t wsdev = (WS2812DevType_t)dev;
     Rtv_Status rtv_status = SUCCESS;
     if (NULL == wsdev) {
         return EINVAL;
@@ -157,10 +157,13 @@ static Rtv_Status _init(void *dev)
  */
 static Rtv_Status _control(void *dev, int cmd, void *arg)
 {
-    ws2812_dev_t ws_dev = (ws2812_dev_t)dev;
+    WS2812DevType_t ws_dev = (WS2812DevType_t)dev;
     Rtv_Status update_status;
     uint32_t *led_num = (uint32_t *)arg;
 
+    if (ws_dev == NULL) {
+        return EINVAL;
+    }
     if( cmd == WS2812_CTRL_INIT )
     {
         if( led_num == NULL || *led_num == 0 )
@@ -177,9 +180,9 @@ static Rtv_Status _control(void *dev, int cmd, void *arg)
         {
             return ENOMEM;
         }
+        memset( ws_dev->dev_attr.render_buff, 0, ( *led_num ) * 3 );
         ws_dev->dev_attr.led_num = *led_num;
         ws_dev->dev_attr.ctrl_led_num = *led_num;
-        memset( ws_dev->dev_attr.render_buff, 0, ( *led_num ) * 3 );
       } else if( cmd == WS2812_CTRL_BAR_COLOR ) {
         struct ws2812_bar_ctrlpack *pack = (struct ws2812_bar_ctrlpack *)arg;
 
@@ -261,7 +264,7 @@ struct ws2812_dev WS2812_DEV =
 };
 
 /******************************************************************************/
-ws2812_dev_t find_ws2812_dev(void)
+WS2812DevType_t find_ws2812_dev(void)
 {
     return &WS2812_DEV;
 }

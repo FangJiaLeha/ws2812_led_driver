@@ -14,7 +14,7 @@
  * @brief WS2812灯条默认序号(第一条灯带)
  *
  */
-#define WS2812_BAR_DEFAULT_INDEX            (0x01u)
+#define WS2812_BAR_DEFAULT_INDEX            PWM_CHX_INDEX_INIT_SET
 /**
  * @brief WS2812灯条最大数
  *
@@ -118,7 +118,7 @@ do {                                                    \
 #define WS2812_CTRL_LED_ALL_CHECK(ctrl_led_all_num)                     \
 do {                                                                    \
     if (ctrl_led_all_num == 0 ||                                        \
-        ctrl_led_all_num > WS2812_LED_NUM + WS2812_RETAIN_LED_NUM) {    \
+        ctrl_led_all_num > WS2812_LED_DEFAULT_NUM + WS2812_RETAIN_LED_NUM) {    \
             goto set_error;                                             \
     }                                                                   \
 } while(0)
@@ -172,10 +172,9 @@ do {                                                    \
  *  V1.0.3  Modify the ws2812 high level time to 780ns base on B09 and new head led board
  *  V1.1.0  Add the new led effect
  *  V1.2.0  Modify firmware to universal module driver
+ *  V1.2.1  Add the interface comment
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 0)
-
-#define MCU_WORK_IN_APP_MODE    0x00
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 1)
 
 /******************************************************************************/
 /**
@@ -185,7 +184,8 @@ do {                                                    \
  * @param tlc59108_bar_num          TLC59108默认初始化灯条数
  * @return Rtv_Status               返回值 @SUCCESS:初始化成功  @其他值:初始化失败
  */
-Rtv_Status init_led_bars(const uint8_t ws2812_bar_index, const uint8_t tlc59108_bar_num);
+Rtv_Status init_led_bars(const uint8_t ws2812_bar_index,
+                         const uint8_t tlc59108_bar_num);
 
 /**
  * @brief

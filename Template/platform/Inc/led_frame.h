@@ -5,50 +5,43 @@
 #include <string.h>
 #include "common.h"
 
-enum ledbar_ctrl_mode
-{
-    LEDBAR_CTRL_MODE_OFF = 0x00,
-    LEDBAR_CTRL_MODE_CONST_ON,
-    LEDBAR_CTRL_MODE_BLINK_OFF,
-    LEDBAR_CTRL_MODE_BLINK_ON,
-    LEDBAR_CTRL_MODE_BREATHING,
-    LEDBAR_CTRL_MODE_SECTRL
-};
-
-struct render_param
-{
-    uint8_t ctrl_mode;
-    float color1[3];
-    float color2[3];
-    float breath_step[3];
-    uint16_t intval;
-    uint16_t times;
-    uint16_t loop_delay;  //!< 渲染引擎渲染间隔时间，单位10ms
-};
-
-struct render_state
-{
-    uint8_t action_done;
-    uint16_t looped;      //!< 已循环的次数或运行的次数
-};
-
-struct led_bar{
+//==============================================================================
+/**
+ * @brief 灯条对象结构体声明
+ *
+ */
+typedef struct led_bar{
     uint8_t id;
-
-    struct render_param param;
-    struct render_state state;
 
     Rtv_Status (*set_color)(struct led_bar *bar, float *color);
     Rtv_Status (*on)(struct led_bar *bar, float *color);
     Rtv_Status (*off)(struct led_bar *bar );
-    Rtv_Status (*blink)(struct led_bar *bar, uint8_t mode, uint8_t blink_led_num, uint8_t blink_start_pos);
-    Rtv_Status (*water)(struct led_bar *bar, uint8_t mode, uint8_t single_led_num, uint8_t water_start_pos);
-    Rtv_Status (*breath)(struct led_bar *bar, uint16_t breath_period);
+    Rtv_Status (*blink)(struct led_bar *bar,
+                        const uint8_t mode,
+                        const uint8_t blink_led_num,
+                        const uint8_t blink_start_pos);
+    Rtv_Status (*water)(struct led_bar *bar,
+                        const uint8_t mode,
+                        const uint8_t single_led_num,
+                        const uint8_t water_start_pos);
+    Rtv_Status (*breath)(struct led_bar *bar,
+                         const uint16_t breath_period);
     void *private;
-};
-typedef struct led_bar* led_bar_t;
+}LedBarType;
+typedef LedBarType* LedBarType_t;
 
-Rtv_Status init_led_bar(led_bar_t bar,
+//==============================================================================
+/**
+ * @brief 对外提供一个通用的灯条对象初始化方法
+ *
+ * @param bar           灯条bar对象地址
+ * @param id            灯条bar的id
+ * @param set_color     灯条bar的设置颜色方法
+ * @param priv_data     灯条bar的私有数据
+ * @return Rtv_Status   @SUCCESS:初始化灯条成功 @其他值:初始化灯条失败
+ */
+Rtv_Status init_led_bar(LedBarType_t bar,
                         uint8_t id,
-                        Rtv_Status (*set_color)(led_bar_t bar, float *color), void *priv_data);
+                        Rtv_Status (*set_color)(LedBarType_t bar, float *color),
+                        void *priv_data);
 #endif

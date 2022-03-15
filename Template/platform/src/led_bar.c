@@ -2,7 +2,7 @@
 
 /******************************************************************************/
 static struct ws2812_bar led_bar1;
-static led_bar_t Lbar[] = {(led_bar_t)&led_bar1};
+static LedBarType_t Lbar[] = {(LedBarType_t)&led_bar1};
 
 static uint16_t recv_data_len = 0;
 static uint8_t *recv_data_buff = NULL;
@@ -13,22 +13,22 @@ static uint8_t *set_send_buff = NULL;
 /**
  * @brief WS2812灯条控制接口
  */
-static void ctrl_ws2812_off(led_bar_t led_bar, uint8_t *ctrl_para);
-static void ctrl_ws2812_on(led_bar_t led_bar, uint8_t *ctrl_para);
-static void ctrl_ws2812_blink(led_bar_t led_bar, uint8_t *ctrl_para);
-static void ctrl_ws2812_base_water(led_bar_t led_bar, uint8_t *ctrl_para);
-static void ctrl_ws2812_change_water(led_bar_t led_bar, uint8_t *ctrl_para);
-static void ctrl_ws2812_breath(led_bar_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_off(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_on(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_blink(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_base_water(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_change_water(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_breath(LedBarType_t led_bar, uint8_t *ctrl_para);
 /**
  * @brief TLC59108灯条控制接口
  */
-static void ctrl_tlc59108_dimming(led_bar_t led_bar, uint8_t *ctrl_para);
-static void ctrl_tlc59108_blinking(led_bar_t led_bar, uint8_t *ctrl_para);
+static void ctrl_tlc59108_dimming(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_tlc59108_blinking(LedBarType_t led_bar, uint8_t *ctrl_para);
 
 struct cmd_list
 {
     const uint8_t cmd_type;
-    void (*callback)(led_bar_t led_bar, uint8_t *para);
+    void (*callback)(LedBarType_t led_bar, uint8_t *para);
 };
 
 /******************************************************************************/
@@ -109,10 +109,10 @@ static const struct cmd_list *find_proccessor(const DriverDevType driver_type,
     return NULL;
 }
 /******************************************************************************/
-static Rtv_Status ws2812_bar_set_color(led_bar_t bar, float *color)
+static Rtv_Status ws2812_bar_set_color(LedBarType_t bar, float *color)
 {
-    ws2812_bar_t wbar = (ws2812_bar_t)bar;
-    ws2812_dev_t wsdev = (ws2812_dev_t)bar->private;
+    WS2812BarType_t wbar = (WS2812BarType_t)bar;
+    WS2812DevType_t wsdev = (WS2812DevType_t)bar->private;
     struct ws2812_bar_ctrlpack pack;
 
     pack.color[0] = (uint8_t)color[0];
@@ -141,11 +141,12 @@ static uint8_t CheckXOR(const uint8_t *data_buff,uint8_t buff_len)
 }
 
 /******************************************************************************/
-Rtv_Status init_led_bars(const uint8_t ws2812_bar_index, const uint8_t tlc59108_bar_num)
+Rtv_Status init_led_bars(const uint8_t ws2812_bar_index,
+                         const uint8_t tlc59108_bar_num)
 {
     Rtv_Status rtv_status = SUCCESS;
     PwmDevType_t pwm_dev = find_pwm_dev();
-    ws2812_dev_t wsdev = find_ws2812_dev();
+    WS2812DevType_t wsdev = find_ws2812_dev();
     // tcl59108_dev_t tlcdev = find_tlc59108_dev();
 
     if (NULL == pwm_dev ||
@@ -159,24 +160,27 @@ Rtv_Status init_led_bars(const uint8_t ws2812_bar_index, const uint8_t tlc59108_
      * @brief WS2812灯条参数默认初始化
      *
      */
-    uint16_t ws_led_num = WS2812_LED_NUM;
+    uint16_t ws_led_num = WS2812_LED_DEFAULT_NUM;
     wsdev->dev_attr.index = ws2812_bar_index;
     wsdev->dev_attr.private = pwm_dev;
+    // 初始化WS2812灯条 底层PWM周期和占空比
     rtv_status = wsdev->ws2812_dev_ops.init(wsdev);
     if (rtv_status != SUCCESS) {
         return rtv_status;
     }
+    // 初始化WS2812灯条 BSP层
     rtv_status = wsdev->ws2812_dev_ops.control(wsdev, WS2812_CTRL_INIT, &ws_led_num);
     if (rtv_status != SUCCESS) {
         return rtv_status;
     }
-    init_ws2812_bar(&led_bar1, 1, ws2812_bar_set_color, wsdev, WS2812_LED_NUM, 0);
+    init_ws2812_bar(&led_bar1, 1, ws2812_bar_set_color, wsdev, ws_led_num, 0);
 
     /**
      * @brief TLC59108灯条参数默认初始化
      *
      */
 
+    // 获取I2C设备的发送和接收buff
     control_i2c(I2C0_DEV, I2C_GET_RECV_BUFF, (void *)&recv_data_buff);
     control_i2c(I2C0_DEV, I2C_GET_SEND_BUFF, (void *)&set_send_buff);
 
@@ -194,9 +198,9 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
 #endif
 {
     const struct cmd_list *cmd = NULL;
-    led_bar_t bar = NULL;
-    ws2812_dev_t ws2812_dev = NULL;
-    ws2812_bar_t wbar = NULL;
+    LedBarType_t bar = NULL;
+    WS2812DevType_t ws2812_dev = NULL;
+    WS2812BarType_t wbar = NULL;
     uint8_t *bar_ctrl_para = NULL;
     uint8_t bar_driver_type, bar_work_mode;
     uint8_t ws2812_bar_index, ws2812_bar_ctrl_led_all;
@@ -212,8 +216,8 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
         goto set_error;
     }
     if (bar_driver_type == WS2812DEV) {
-        ws2812_dev = (ws2812_dev_t)bar->private;
-        wbar = (ws2812_bar_t)bar;
+        ws2812_dev = (WS2812DevType_t)bar->private;
+        wbar = (WS2812BarType_t)bar;
         // 选择控制ws2812灯条序号
         ws2812_bar_index = req[2];
         // 控制ws2812灯珠总数
@@ -262,9 +266,9 @@ void data_analysis_task(void)
     uint8_t read_reg_buff[20] = {0}, read_reg_pos = 0, reg_need_rdwr_num = 0;
     control_i2c(I2C0_DEV, I2C_GET_RECV_DATA_LEN, (void *)&recv_data_len);
     if (recv_data_len != 0) {
-        // 写操作
         if (recv_data_len > 0x01) {
             control_i2c(I2C0_DEV, I2C_RESET_RECV_DATA_LEN, NULL);
+            // 接收数据后 先进行XOR校验
             XOR_CHECK(recv_data_buff[recv_data_len - 1], CheckXOR(recv_data_buff, recv_data_len));
 
             // 获取当前WS2812工作模式寄存器中设置的工作模式
@@ -284,7 +288,7 @@ void data_analysis_task(void)
 
             // 尝试获取驱动寄存器中 设置的驱动设备类型
             control_register(GET_REG_DRIVER_TYPE, 0, &read_reg_buff[0], 0x01);
-            // 根据驱动设备类型寄存器值获取读寄存器偏移地址
+            // 根据驱动设备类型寄存器值获取 该设备的寄存器偏移地址 和 该设备的寄存器数量
             if (read_reg_buff[0] == TLC59108DEV) {
                 control_register(GET_TLC59108REG_POS, 0, &read_reg_pos, 0);
                 control_register(GET_TLC59108REG_NUM_INFO, 0, &reg_need_rdwr_num, 0);
@@ -309,30 +313,19 @@ void data_analysis_task(void)
         set_error:
             control_i2c(I2C0_DEV, I2C_RESET_RECV_BUFF, (void *)&recv_data_buff);
         }
-//        else { // 读操作
-//            // 根据读取寄存器的地址 获取该地址及该地址之后所有可读寄存器的数量
-//            control_register(POS_GET_REMAIN_REG_NUM,
-//                            recv_data_buff[0],
-//                            (void *)&reg_need_rdwr_num,
-//                            0);
-//            control_register(RD_REG_INFO,
-//                             recv_data_buff[0],
-//                             set_send_buff,
-//                             reg_need_rdwr_num);
-//        }
     }
 }
 
 /******************************************************************************/
 /**
- * @brief WS2812灯条熄灭模式
+ * @brief 控制WS2812灯条进入熄灭模式
  *
  * @param led_bar       WS2812灯条对象地址
  * @param ctrl_para     WS2812灯条控制参数
  */
-static void ctrl_ws2812_off(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_ws2812_off(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
     if (ctrl_para == NULL || wbar == NULL) {
         return;
     }
@@ -350,9 +343,9 @@ static void ctrl_ws2812_off(led_bar_t led_bar, uint8_t *ctrl_para)
  * @param led_bar       WS2812灯条对象地址
  * @param ctrl_para     WS2812灯条控制参数
  */
-static void ctrl_ws2812_on(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_ws2812_on(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
     uint8_t ctrl_led_pos, ctrl_led_num;
     float color[3];
     if (NULL == ctrl_para || NULL == wbar) {
@@ -371,7 +364,6 @@ static void ctrl_ws2812_on(led_bar_t led_bar, uint8_t *ctrl_para)
     color[0] = (float)ctrl_para[0];
     color[1] = (float)ctrl_para[1];
     color[2] = (float)ctrl_para[2];
-
     ctrl_led_num = ctrl_para[7];
     ctrl_led_pos = ctrl_para[8];
 
@@ -395,9 +387,9 @@ static void ctrl_ws2812_on(led_bar_t led_bar, uint8_t *ctrl_para)
  * @param led_bar       WS2812灯条对象地址
  * @param ctrl_para     WS2812灯条控制参数
  */
-static void ctrl_ws2812_blink(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_ws2812_blink(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
     uint8_t blink_led_num, blink_start_pos, blink_mode, blink_period;
     if (NULL == ctrl_para || NULL == wbar) {
         return;
@@ -416,9 +408,15 @@ static void ctrl_ws2812_blink(led_bar_t led_bar, uint8_t *ctrl_para)
         blink_start_pos > wbar->led_num) {
         return;
     }
+    BLINK_MODE_CHECK(blink_mode);
+
     // 设置默认闪烁周期50ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, blink_period * 50);
-    wbar->parent.blink(led_bar, blink_mode, blink_led_num, blink_start_pos);
+
+    led_bar->blink(led_bar, blink_mode, blink_led_num, blink_start_pos);
+
+set_error:
+    return;
 }
 
 /**
@@ -427,9 +425,9 @@ static void ctrl_ws2812_blink(led_bar_t led_bar, uint8_t *ctrl_para)
  * @param led_bar       WS2812灯条对象地址
  * @param ctrl_para     WS2812灯条控制参数
  */
-static void ctrl_ws2812_base_water(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_ws2812_base_water(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
     uint8_t singal_led_num, water_mode, water_start_pos, water_period;
     if (NULL == ctrl_para || NULL == wbar) {
         return;
@@ -452,7 +450,8 @@ static void ctrl_ws2812_base_water(led_bar_t led_bar, uint8_t *ctrl_para)
 
     // 设置默认流水周期10ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, water_period * 10);
-    wbar->parent.water(led_bar, water_mode, singal_led_num, water_start_pos);
+
+    led_bar->water(led_bar, water_mode, singal_led_num, water_start_pos);
 
 set_error:
     return;
@@ -464,9 +463,9 @@ set_error:
  * @param led_bar       WS2812灯条对象地址
  * @param ctrl_para     WS2812灯条控制参数
  */
-static void ctrl_ws2812_change_water(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_ws2812_change_water(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
     uint8_t singal_led_num, water_mode, water_start_pos, water_period;
     if (NULL == ctrl_para || NULL == wbar) {
         return;
@@ -494,7 +493,9 @@ static void ctrl_ws2812_change_water(led_bar_t led_bar, uint8_t *ctrl_para)
 
     // 设置默认流水周期10ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, water_period * 10);
-    wbar->parent.water(led_bar, water_mode, singal_led_num, water_start_pos - 1);
+
+    led_bar->water(led_bar, water_mode, singal_led_num, water_start_pos - 1);
+
 set_error:
     return;
 }
@@ -505,9 +506,9 @@ set_error:
  * @param led_bar
  * @param ctrl_para
  */
-static void ctrl_ws2812_breath(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_ws2812_breath(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-    ws2812_bar_t wbar = (ws2812_bar_t)led_bar;
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
     uint8_t breath_period;
     if (NULL == ctrl_para || NULL == wbar) {
         return;
@@ -529,15 +530,16 @@ static void ctrl_ws2812_breath(led_bar_t led_bar, uint8_t *ctrl_para)
 
     // 设置呼吸总周期100ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, wbar->render_param.breath_singal_period);
-    wbar->parent.breath(led_bar, breath_period * 100);
+
+    led_bar->breath(led_bar, breath_period * 100);
 }
 
-static void ctrl_tlc59108_dimming(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_tlc59108_dimming(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
 
 }
 
-static void ctrl_tlc59108_blinking(led_bar_t led_bar, uint8_t *ctrl_para)
+static void ctrl_tlc59108_blinking(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
 
 }
