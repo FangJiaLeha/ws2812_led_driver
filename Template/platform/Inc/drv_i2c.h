@@ -1,7 +1,16 @@
+/**
+ * @file drv_i2c.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _DRV_I2C_H
 #define _DRV_I2C_H
 
-#include "gd32f3x0.h"
 #include "common.h"
 
 //==============================================================================

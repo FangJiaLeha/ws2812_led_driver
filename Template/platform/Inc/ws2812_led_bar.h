@@ -1,8 +1,19 @@
+/**
+ * @file ws2812_led_bar.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _WS2812_LED_BAR_H
 #define _WS2812_LED_BAR_H
 
 #include "common.h"
 #include "led_frame.h"
+#include "ws2812.h"
 
 //==============================================================================
 /**

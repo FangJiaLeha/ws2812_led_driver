@@ -1,9 +1,20 @@
+/**
+ * @file test.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _TEST_H
 #define _TEST_H
 
 #include "common.h"
 #include "led_bar.h"
 #include "task_sch.h"
+#include "ws2812_led_bar.h"
 
 #define _PWM_TEST               0x00
 

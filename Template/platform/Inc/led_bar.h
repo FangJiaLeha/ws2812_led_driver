@@ -1,3 +1,13 @@
+/**
+ * @file led_bar.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _LED_BAR_H
 #define _LED_BAR_H
 
@@ -173,8 +183,9 @@ do {                                                    \
  *  V1.1.0  Add the new led effect
  *  V1.2.0  Modify firmware to universal module driver
  *  V1.2.1  Add the interface comment
+ *  V1.2.2  Add the wdgt but no test
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 1)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 2)
 
 /******************************************************************************/
 /**

@@ -1,3 +1,13 @@
+/**
+ * @file board.c
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #include "board.h"
 
 void init_board(void)
@@ -6,6 +16,11 @@ void init_board(void)
 
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
     systick_config();
+
+    // 初始化看门狗
+    if (init_wdgt(WDGT_TIMEOUT_SET) != SUCCESS) {
+        return;
+    }
 
     // 初始化PWM设备(pwm通道配置)
     if (init_pwm_dev() != SUCCESS) {

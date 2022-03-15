@@ -1,3 +1,13 @@
+/**
+ * @file led_bar.c
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #include "led_bar.h"
 
 /******************************************************************************/
@@ -249,7 +259,7 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
     }
 
     bar_ctrl_para = &req[4];
-    cmd = find_proccessor(bar_driver_type, (uint8_t)bar_work_mode);
+    cmd = find_proccessor((DriverDevType)bar_driver_type, (uint8_t)bar_work_mode);
     if (NULL != cmd) {
         cmd->callback(bar, bar_ctrl_para);
     }

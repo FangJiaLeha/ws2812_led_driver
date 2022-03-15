@@ -1,3 +1,13 @@
+/**
+ * @file drv_pwm.c
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #include "drv_pwm.h"
 
 /******************************************************************************/
@@ -279,7 +289,9 @@ void DMA_Channel1_2_IRQHandler(void)
         dma_interrupt_flag_clear(dma_channel, DMA_INT_FLAG_FTF);
         dma_interrupt_flag_clear(dma_channel, DMA_INT_FLAG_HTF);
         dma_interrupt_flag_clear(dma_channel, DMA_INT_FLAG_G);
-        timer_channel_output_pulse_value_config(timer_periph, timer_channel, GD32F3X0_PWM_TIMER_SET(WS2812DEV));
+        timer_channel_output_pulse_value_config(timer_periph,
+                                                timer_channel,
+                                                GD32F3X0_PWM_TIMER_SET(WS2812DEV));
         /* disable DMA channelx */
         dma_channel_disable(dma_channel);
         /* timer channel output disable config */
@@ -640,7 +652,7 @@ static Rtv_Status _control_pwm(void *pwm_dev,
             timer_channel_output_pulse_value_config(timer_periph, timer_channel, pulse);
         break;
         case PWM_CTRL_SET_DRV_TYPE:
-            pwm_dev_para->driver_type = *(uint8_t *)arg;
+            pwm_dev_para->driver_type = (DriverDevType)(*(uint8_t *)arg);
         break;
         case PWM_CTRL_DEV_DEINIT:
             _pwm_timer_init(pwm_dev_para);
@@ -652,9 +664,9 @@ static Rtv_Status _control_pwm(void *pwm_dev,
     return SUCCESS;
 }
 /******************************************************************************/
-ErrStatus init_pwm_dev(void)
+Rtv_Status init_pwm_dev(void)
 {
-    pwm_devs.init((void *)&pwm_devs);
+    return pwm_devs.init((void *)&pwm_devs);
 }
 
 PwmDevType_t find_pwm_dev(void)

@@ -1,7 +1,16 @@
+/**
+ * @file drv_pwm.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _DRV_PWM_H
 #define _DRV_PWM_H
 
-#include "gd32f3x0.h"
 #include "common.h"
 
 /******************************************************************************/
@@ -175,7 +184,7 @@ do {                                        \
  *
  */
 #define FTIMER                      (84u)
-#define GD32F3X0_PWM_TIMER_SET(ns)  (((ns) * FTIMER / 1000.0) - 1.0)
+#define GD32F3X0_PWM_TIMER_SET(ns)  (uint32_t)(((ns) * FTIMER / 1000.0) - 1.0)
 
 /**
  * @brief B09和PJ0019开发环境兼容处理
@@ -215,7 +224,7 @@ do {                                        \
  * @brief 提供对外初始化PWM设备接口
  *
  */
-ErrStatus init_pwm_dev(void);
+Rtv_Status init_pwm_dev(void);
 /**
  * @brief 提供对外获取PWM设备接口
  *

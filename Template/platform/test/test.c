@@ -1,5 +1,14 @@
+/**
+ * @file test.c
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #include "test.h"
-#include "ws2812_led_bar.h"
 
 uint8_t flag = 0;
 

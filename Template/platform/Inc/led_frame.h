@@ -1,8 +1,16 @@
+/**
+ * @file led_frame.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _LED_FRAME_H
 #define _LED_FRAME_H
 
-#include <stdint.h>
-#include <string.h>
 #include "common.h"
 
 //==============================================================================

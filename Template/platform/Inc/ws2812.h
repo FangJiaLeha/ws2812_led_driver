@@ -1,3 +1,13 @@
+/**
+ * @file ws2812.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _WS2812_H
 #define _WS2812_H
 

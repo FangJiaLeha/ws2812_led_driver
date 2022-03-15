@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>GD32F330_App</TargetName>
+      <TargetName>gd32f330_led_driver</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pArmCC>5060960::V5.06 update 7 (build 960)::.\ARMCC</pArmCC>
@@ -50,7 +50,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>gd32f330_ws2812_driver_V1.x.x</OutputName>
+          <OutputName>gd32f330_led_driver_V1.x.x</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -81,7 +81,7 @@
             <nStopB2X>0</nStopB2X>
           </BeforeMake>
           <AfterMake>
-            <RunUserProg1>1</RunUserProg1>
+            <RunUserProg1>0</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
             <UserProg1Name>"Post Universe Chassis.bat"</UserProg1Name>
             <UserProg2Name></UserProg2Name>
@@ -573,6 +573,11 @@
               <FileName>drv_i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\drv_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_wdgt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\drv_wdgt.c</FilePath>
             </File>
           </Files>
         </Group>

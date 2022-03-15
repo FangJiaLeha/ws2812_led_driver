@@ -1,3 +1,13 @@
+/**
+ * @file task_sch.c
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #include "task_sch.h"
 
 //==============================================================================
@@ -71,11 +81,6 @@ static struct task_list *find_task_proccess(uint8_t _level)
 }
 
 //==============================================================================
-static uint32_t get_task_ms_tick(void)
-{
-    return task_1ms_tick;
-}
-
 static void set_task_ms_tick(const uint32_t cur_tick)
 {
     task_1ms_tick = cur_tick;
@@ -93,7 +98,19 @@ static uint16_t get_task_ms_value(uint8_t _level)
     return tasks[_level].task_ms_value;
 }
 //==============================================================================
-void task_register(uint8_t task_type, uint8_t _level, void (*_callback)(void))
+void task_1ms_tick_increase(void)
+{
+    task_1ms_tick++;
+}
+
+uint32_t get_task_ms_tick(void)
+{
+    return task_1ms_tick;
+}
+
+void task_register(const TaskType task_type,
+                   const TaskLevelType _level,
+                   void (*_callback)(void))
 {
     TASK_TYPE_CHECK(task_type);
     TASK_LEVEL_CHECK(_level);
@@ -106,15 +123,15 @@ set_error:
     return;
 }
 
-void task_1ms_tick_increase(void)
-{
-    task_1ms_tick++;
-}
-
-Rtv_Status task_ms_reset(uint8_t task_type, uint8_t task_level, uint16_t _new_task_ms)
+Rtv_Status task_ms_reset(const TaskType task_type,
+                         const TaskLevelType task_level,
+                         const uint16_t _new_task_ms)
 {
     TASK_TYPE_CHECK(task_type);
     TASK_LEVEL_CHECK(task_level);
+    if (_new_task_ms == 0) {
+        goto set_error;
+    }
 
     if (task_level == task_types[task_type].cur_task_level) {
     } else {

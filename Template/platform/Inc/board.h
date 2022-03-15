@@ -6,6 +6,8 @@
 #include "drv_i2c.h"
 #include "led_bar.h"
 #include "register_info.h"
+#include "ws2812_led_bar.h"
+#include "drv_wdgt.h"
 
 //==============================================================================
 /* i2c0 addr and buff size config */

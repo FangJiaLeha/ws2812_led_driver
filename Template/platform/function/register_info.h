@@ -1,8 +1,17 @@
+/**
+ * @file register_info.h
+ * @author {fangjiale} 
+ * @brief 
+ * @version 0.1
+ * @date 2022-03-15
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _REGISTER_INFO_H
 #define _REGISTER_INFO_H
 
 #include "common.h"
-#include "drv_i2c.h"
 #include "drv_pwm.h"
 
 typedef enum ctrl_reg_cmd
