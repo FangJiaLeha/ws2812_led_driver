@@ -10,8 +10,9 @@
  * @brief
  *      V1.0.0  the first release version
  *      V1.0.1  hotfix version that fix i2c overshoot bug by reducing gpio speed
+ *      V1.0.2  Further solve the problem of I2C signal overshoot and test ok
  */
-uint8_t version[3] = {1, 0, 1};
+uint8_t version[3] = {1, 0, 2};
 
 int main(void)
 {
