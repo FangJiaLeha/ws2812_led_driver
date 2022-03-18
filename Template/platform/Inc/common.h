@@ -28,7 +28,7 @@ struct dev_ops
     Rtv_Status (*close)(void *dev);
     Size_Type  (*read)(void *dev, Offset_Type pos, void *buffer, Size_Type size);
     Size_Type  (*write)(void *dev, Offset_Type pos, const void *buffer, Size_Type size);
-    Rtv_Status (*control)(void *dev, int cmd, void *args);
+    Rtv_Status (*control)(void *dev, const int cmd, void *args);
 };
 
 /* test macro */

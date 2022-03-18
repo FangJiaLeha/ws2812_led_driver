@@ -81,12 +81,19 @@ typedef struct show_color_type
 typedef struct tlc59108_reg
 {
     /**
-     * @brief 工作模式设置寄存器
+     * @brief 工作模式寄存器1
+     *
+     * @note  实际未使用
+     *
+     */
+    uint8_t WorkMode1;
+    /**
+     * @brief 工作模式寄存器2
      *
      * @note  0x01:dimming模式
      *        0x02:blinking模式
      */
-    uint8_t WorkMode;
+    uint8_t WorkMode2;
     /**
      * @brief 单通道亮度设置寄存器
      *
@@ -132,10 +139,21 @@ typedef struct tlc59108_reg
         LEDOUT1RegType Bits;
     }LEDOUT1;
     /**
-     * @brief 通道错误标志寄存器
+     * @brief I2C设备子地址1/2/3
+     *
+     * @note  实际未使用
      *
      */
-    uint8_t EFlag;
+    uint8_t SubAddr1;
+    uint8_t SubAddr2;
+    uint8_t SubAddr3;
+    /**
+     * @brief 可操作所有TLC59108设备的地址
+     *
+     * @note  实际未使用
+     *
+     */
+    uint8_t AllCallAddr;
 }TLC59108RegType;
 
 /**
@@ -234,18 +252,18 @@ typedef struct ws2812_reg
 typedef struct reg_info
 {
     /**
+     * @brief TLC59108寄存器
+     *
+     */
+    TLC59108RegType TLC59108RegInfo;
+
+    /**
      * @brief 驱动的设备类型
      *
      * @note  0x01: WS2812
      *        0x02: TLC59108
      */
     uint8_t DriverDevType;
-
-    /**
-     * @brief TLC59108寄存器
-     *
-     */
-    TLC59108RegType TLC59108RegInfo;
 
     /**
      * @brief WS2812寄存器
@@ -279,10 +297,10 @@ typedef struct reg_dev
     RegInfoType info;
     Rtv_Status (*init)(void *dev);
     Rtv_Status (*control)(void *dev,
-                    const CtrlRegCmdType cmd,
-                    const uint8_t regAddr,
-                    void *arg,
-                    const uint8_t size);
+                          const CtrlRegCmdType cmd,
+                          const uint8_t regAddr,
+                          void *arg,
+                          const uint8_t size);
 }RegDevType;
 typedef RegDevType* RegDevType_t;
 
@@ -297,8 +315,8 @@ static Rtv_Status _init(void *dev)
     memset(&temp_reg_dev->info, 0, sizeof(RegInfoType));
     // 获取灯驱寄存器总数和灯驱寄存器的首地址 +2:WS2812的周期寄存器为2个字节的数据(以单个字节为单位)
     temp_reg_dev->info.RegNum = (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
-                                &temp_reg_dev->info.DriverDevType + 2;
-    temp_reg_dev->info.RegBaseAddr =  &temp_reg_dev->info.DriverDevType;
+                                &temp_reg_dev->info.TLC59108RegInfo.WorkMode1 + 2;
+    temp_reg_dev->info.RegBaseAddr =  &temp_reg_dev->info.TLC59108RegInfo.WorkMode1;
     temp_reg_dev->info.WS2812RegBaseAddr = &temp_reg_dev->info.WS2812RegInfo.WorkMode;
     return SUCCESS;
 }
@@ -315,35 +333,35 @@ static Rtv_Status _control(void *dev,
     }
 
     if (cmd == RD_REG_INFO) {
-        memmove((uint8_t *)arg, temp_reg_dev->info.RegBaseAddr + regAddr - 1, size);
+        memmove((uint8_t *)arg, temp_reg_dev->info.RegBaseAddr + regAddr, size);
     } else if(cmd == WR_RGE_INFO) {
-        memmove(temp_reg_dev->info.RegBaseAddr + regAddr - 1, (uint8_t *)arg, size);
+        memmove(temp_reg_dev->info.RegBaseAddr + regAddr, (uint8_t *)arg, size);
     } else if(cmd == GET_REG_NUM_INFO) {
         *(uint8_t *)arg = temp_reg_dev->info.RegNum;
     } else if(cmd == GET_REG_DRIVER_TYPE) {
         *(uint8_t *)arg = temp_reg_dev->info.DriverDevType;
     } else if(cmd == GET_TLC59108REG_NUM_INFO) {
-        *(uint8_t *)arg = temp_reg_dev->info.WS2812RegBaseAddr -
-                          &temp_reg_dev->info.TLC59108RegInfo.WorkMode;
+        *(uint8_t *)arg = &temp_reg_dev->info.DriverDevType -
+                          &temp_reg_dev->info.TLC59108RegInfo.WorkMode1;
     } else if(cmd == GET_WS2812REG_NUM_INFO) {
         *(uint8_t *)arg = (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
                           temp_reg_dev->info.WS2812RegBaseAddr + 2;
     } else if(cmd == GET_TLC59108REG_POS) {
-        *(uint8_t *)arg = &temp_reg_dev->info.TLC59108RegInfo.WorkMode -
-                          temp_reg_dev->info.RegBaseAddr + 1;
+        *(uint8_t *)arg = &temp_reg_dev->info.TLC59108RegInfo.WorkMode1 -
+                          temp_reg_dev->info.RegBaseAddr;
     } else if(cmd == GET_WS2812REG_POS) {
         *(uint8_t *)arg = temp_reg_dev->info.WS2812RegBaseAddr -
-                          temp_reg_dev->info.RegBaseAddr + 1;
+                          temp_reg_dev->info.RegBaseAddr;
     } else if(cmd == RESET_PARAM_SEG) {
         if (temp_reg_dev->info.DriverDevType == WS2812DEV) {
-            memset(temp_reg_dev->info.RegBaseAddr + regAddr - 1,
+            memset(temp_reg_dev->info.RegBaseAddr + regAddr,
                    0,
                    (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.PeriodConfig -
                    (uint8_t *)&temp_reg_dev->info.WS2812RegInfo.ColorStart + 2);
         } else if (temp_reg_dev->info.DriverDevType == TLC59108DEV) {
-            memset(temp_reg_dev->info.RegBaseAddr + regAddr - 1,
+            memset(temp_reg_dev->info.RegBaseAddr + regAddr,
                    0,
-                   temp_reg_dev->info.WS2812RegBaseAddr -
+                   &temp_reg_dev->info.DriverDevType -
                    (uint8_t *)&temp_reg_dev->info.TLC59108RegInfo.BrightCtrl);
         }
     } else if (cmd == RESET_REG_INFO){
@@ -369,18 +387,17 @@ ErrStatus init_register(void)
 }
 
 ErrStatus control_register(const CtrlRegCmdType cmd,
-                      const uint8_t regAddr,
-                      void *arg,
-                      uint8_t size)
+                           const uint8_t regAddr,
+                           void *arg,
+                           uint8_t size)
 {
     CTRL_REG_CMD_CHECK(cmd);
     REGADDR_CHECK(cmd, regAddr, regDev.info.RegNum);
     CTRL_REG_ARG_CHECK(cmd, arg);
     CTRL_REG_SIZE_CHECK(cmd, size);
 
-    // size 包括传入的地址数据 因此实际进行判断时 需去掉本身地址的数据
-    if (regAddr + size - 1 > regDev.info.RegNum) {
-        size = regDev.info.RegNum - regAddr + 1;
+    if (regAddr + size > regDev.info.RegNum) {
+        size = regDev.info.RegNum - regAddr;
     }
 
     if (regDev.control((void *)&regDev, cmd, regAddr, arg, size) != SUCCESS) {

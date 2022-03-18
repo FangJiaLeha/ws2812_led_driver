@@ -14,6 +14,9 @@
 static Rtv_Status on(LedBarType_t bar, float *color)
 {
     Rtv_Status ret;
+    if (bar->set_color == NULL) {
+        return ERROR;
+    }
     ret = bar->set_color(bar, color);
     return ret;
 }
@@ -21,6 +24,9 @@ static Rtv_Status on(LedBarType_t bar, float *color)
 static Rtv_Status off(LedBarType_t bar)
 {
     Rtv_Status ret;
+    if (bar->set_color == NULL) {
+        return ERROR;
+    }
     ret =  bar->set_color( bar, (float []){0, 0, 0});
     return ret;
 }

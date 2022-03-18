@@ -194,7 +194,7 @@ static Rtv_Status _control(void *dev, int cmd, void *arg)
         ws_dev->dev_attr.led_num = *led_num;
         ws_dev->dev_attr.ctrl_led_num = *led_num;
       } else if( cmd == WS2812_CTRL_BAR_COLOR ) {
-        struct ws2812_bar_ctrlpack *pack = (struct ws2812_bar_ctrlpack *)arg;
+        WS2812BarCtrlPackType_t pack = (WS2812BarCtrlPackType_t)arg;
 
         if( pack->count == 0 || pack == NULL)
         {
@@ -261,7 +261,7 @@ struct ws2812_dev WS2812_DEV =
         .ctrl_led_num = 0,
         .dma_buff = NULL,
         .render_buff = NULL,
-        .index = 1,          // WS2812灯条序号
+        .index = 0,          // WS2812灯条序号
         .index_enable = 0,   // 默认设置该灯条输出失能
         .render_loop = 0,    // 默认设置 渲染模式下 失能下一次通道输出
         .private = NULL      // 用于存储pwm设备地址

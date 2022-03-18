@@ -208,9 +208,12 @@ do {                                        \
 /**
  * @brief TLC59108 PWM波驱动频率
  *
- * @note  Fq >= 100KHz  -> Period <= 1/Fq(0.01ms ~ 10000ns)
+ * @note  Fq >= 100KHz  -> F / (Period * psc) >= 100KHz (F:84MHz)
+ *                      -> Period * psc <= 840
  */
-#define TLC59108_PWM_PERIOD         (10000ul)
+#define TLC59108_PWM_FRE_NEED       (100)   // pwm时速要求大于100KHz
+#define TLC59108_PWM_PERIOD         (255)
+#define TLC59108_TIMER_PSC          (FTIMER * 1000 / (TLC59108_PWM_PERIOD * TLC59108_PWM_FRE_NEED))
 
 /* TIMER output pwm polarity configuration */
 #if defined(TEST_BOARD_B09)

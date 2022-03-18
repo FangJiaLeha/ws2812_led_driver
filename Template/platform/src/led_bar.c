@@ -11,12 +11,16 @@
 #include "led_bar.h"
 
 /******************************************************************************/
-static struct ws2812_bar led_bar1;
-static LedBarType_t Lbar[] = {(LedBarType_t)&led_bar1};
+static WS2812BarType led_bar1;
+static TLC59108BarType led_bar2;
+static LedBarType_t Lbar[] = {(LedBarType_t)&led_bar1, (LedBarType_t)&led_bar2};
 
 static uint16_t recv_data_len = 0;
 static uint8_t *recv_data_buff = NULL;
 static uint8_t *set_send_buff = NULL;
+
+// 当前驱动灯条类型
+static DriverDevType cur_driver_type;
 
 /******************************************************************************/
 // 应用逻辑接口声明
@@ -123,7 +127,7 @@ static Rtv_Status ws2812_bar_set_color(LedBarType_t bar, float *color)
 {
     WS2812BarType_t wbar = (WS2812BarType_t)bar;
     WS2812DevType_t wsdev = (WS2812DevType_t)bar->private;
-    struct ws2812_bar_ctrlpack pack;
+    WS2812BarCtrlPackType pack;
 
     pack.color[0] = (uint8_t)color[0];
     pack.color[1] = (uint8_t)color[1];
@@ -135,6 +139,7 @@ static Rtv_Status ws2812_bar_set_color(LedBarType_t bar, float *color)
     wsdev->ws2812_dev_ops.control(wsdev, WS2812_CTRL_BAR_COLOR, &pack);
     return SUCCESS;
 }
+
 
 static uint8_t CheckXOR(const uint8_t *data_buff,uint8_t buff_len)
 {
@@ -151,18 +156,19 @@ static uint8_t CheckXOR(const uint8_t *data_buff,uint8_t buff_len)
 }
 
 /******************************************************************************/
-Rtv_Status init_led_bars(const uint8_t ws2812_bar_index,
-                         const uint8_t tlc59108_bar_num)
+Rtv_Status init_led_bars(const uint8_t ws2812_led_num,
+                         const uint8_t tlc59108_channel_num)
 {
     Rtv_Status rtv_status = SUCCESS;
     PwmDevType_t pwm_dev = find_pwm_dev();
     WS2812DevType_t wsdev = find_ws2812_dev();
-    // tcl59108_dev_t tlcdev = find_tlc59108_dev();
+    TLC59108DevType_t tlcdev = find_tlc59108_dev();
 
     if (NULL == pwm_dev ||
         NULL == wsdev ||
-        ws2812_bar_index == 0 ||
-        tlc59108_bar_num == 0) {
+        ws2812_led_num == 0 ||
+        tlc59108_channel_num == 0 ||
+        tlc59108_channel_num > TLC59108_CHANNNEL_MAX_NUM) {
         return EINVAL;
     }
 
@@ -170,25 +176,32 @@ Rtv_Status init_led_bars(const uint8_t ws2812_bar_index,
      * @brief WS2812灯条参数默认初始化
      *
      */
-    uint16_t ws_led_num = WS2812_LED_DEFAULT_NUM;
-    wsdev->dev_attr.index = ws2812_bar_index;
     wsdev->dev_attr.private = pwm_dev;
-    // 初始化WS2812灯条 底层PWM周期和占空比
-    rtv_status = wsdev->ws2812_dev_ops.init(wsdev);
-    if (rtv_status != SUCCESS) {
-        return rtv_status;
-    }
     // 初始化WS2812灯条 BSP层
-    rtv_status = wsdev->ws2812_dev_ops.control(wsdev, WS2812_CTRL_INIT, &ws_led_num);
+    rtv_status = wsdev->ws2812_dev_ops.control(wsdev,
+                                               WS2812_CTRL_INIT,
+                                               (void *)&ws2812_led_num);
     if (rtv_status != SUCCESS) {
         return rtv_status;
     }
-    init_ws2812_bar(&led_bar1, 1, ws2812_bar_set_color, wsdev, ws_led_num, 0);
+    init_ws2812_bar(&led_bar1, 1, ws2812_bar_set_color, wsdev, ws2812_led_num, 0);
 
     /**
      * @brief TLC59108灯条参数默认初始化
      *
      */
+    tlcdev->dev_attr.private = pwm_dev;
+    // 初始化TLC59108灯条 BSP层
+    rtv_status = tlcdev->tlc59108_dev_ops.control(tlcdev,
+                                                  TLC59108_CTRL_INIT,
+                                                  (void *)&tlc59108_channel_num);
+    if (rtv_status != SUCCESS) {
+        return rtv_status;
+    }
+    init_tlc59108_bar(&led_bar2, 2, NULL, tlcdev, tlc59108_channel_num);
+
+    // 默认初始化设置驱动灯条类型为WS2812
+    cur_driver_type = WS2812DEV;
 
     // 获取I2C设备的发送和接收buff
     control_i2c(I2C0_DEV, I2C_GET_RECV_BUFF, (void *)&recv_data_buff);
@@ -210,6 +223,7 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
     const struct cmd_list *cmd = NULL;
     LedBarType_t bar = NULL;
     WS2812DevType_t ws2812_dev = NULL;
+    TLC59108DevType_t tlc59108_dev = NULL;
     WS2812BarType_t wbar = NULL;
     uint8_t *bar_ctrl_para = NULL;
     uint8_t bar_driver_type, bar_work_mode;
@@ -218,7 +232,6 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
     BAR_REQ_LEN_CHECK(req[0], req_len);
 
     bar_driver_type = req[0];
-    bar_work_mode = req[1];
 
     // 根据灯驱设备类型获取对应的灯条设备句柄
     bar = Lbar[bar_driver_type - 1];
@@ -227,7 +240,13 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
     }
     if (bar_driver_type == WS2812DEV) {
         ws2812_dev = (WS2812DevType_t)bar->private;
+        if (ws2812_dev == NULL) {
+            goto set_error;
+        }
+
         wbar = (WS2812BarType_t)bar;
+        // 获取工作模式
+        bar_work_mode = req[1];
         // 选择控制ws2812灯条序号
         ws2812_bar_index = req[2];
         // 控制ws2812灯珠总数
@@ -242,6 +261,13 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
         WS2812_DRIVER_CHANNEL_CHECK(ws2812_bar_index);
         WS2812_CTRL_LED_ALL_CHECK(ws2812_bar_ctrl_led_all);
 
+        // 发生驱动设备类型改变时 需重新初始化ws2812设备
+        if (cur_driver_type != WS2812DEV) {
+            cur_driver_type = WS2812DEV;
+            ws2812_dev->dev_attr.index = 1; // 默认设置第一个通道输出PWM波
+            ws2812_dev->ws2812_dev_ops.init(ws2812_dev);
+        }
+
         // 上一次控制的灯条编号与当前需控制编号不一致
         if (ws2812_bar_index != ws2812_dev->dev_attr.index) {
             ws2812_dev->dev_attr.index = ws2812_bar_index;
@@ -254,11 +280,23 @@ static void led_bar_control(uint8_t *req, uint8_t req_len)
         }
         // 通道输出使能状态
         ws2812_dev->dev_attr.index_enable = req[3];
+        bar_ctrl_para = &req[4];
     } else {
+        tlc59108_dev = (TLC59108DevType_t)bar->private;
+        if (tlc59108_dev == NULL) {
+            goto set_error;
+        }
+        // 获取工作模式寄存器2中的数据
+        bar_work_mode = req[2];
 
+        // 发生驱动设备类型改变时 需重新初始化tlc59108设备
+        if (cur_driver_type != TLC59108DEV) {
+            cur_driver_type = TLC59108DEV;
+            tlc59108_dev->tlc59108_dev_ops.init(tlc59108_dev);
+        }
+        bar_ctrl_para = &req[3];
     }
 
-    bar_ctrl_para = &req[4];
     cmd = find_proccessor((DriverDevType)bar_driver_type, (uint8_t)bar_work_mode);
     if (NULL != cmd) {
         cmd->callback(bar, bar_ctrl_para);
@@ -281,18 +319,18 @@ void data_analysis_task(void)
             // 接收数据后 先进行XOR校验
             XOR_CHECK(recv_data_buff[recv_data_len - 1], CheckXOR(recv_data_buff, recv_data_len));
 
-            // 获取当前WS2812工作模式寄存器中设置的工作模式
-            control_register(RD_REG_INFO, 0x10, &read_reg_buff[1], 0x01);
+            // 获取当前WS2812/TLC59108灯条 工作模式寄存器中设置的工作模式
+            control_register(RD_REG_INFO, WS2812_WORK_MODE_REG_ADDR, &read_reg_buff[1], 0x01);
+            control_register(RD_REG_INFO, TLC59108_WORK_MODE_REG_ADDR, &read_reg_buff[3], 0x01);
 
             // 写寄存器
             control_register(WR_RGE_INFO,
                              recv_data_buff[0],
                              &recv_data_buff[1],
                              recv_data_len - 2);
-
             // 实时获取寄存器的数据 到发送buff中
             control_register(RD_REG_INFO,
-                             0x01,
+                             0x00,
                              set_send_buff,
                              0x1E);
 
@@ -302,11 +340,17 @@ void data_analysis_task(void)
             if (read_reg_buff[0] == TLC59108DEV) {
                 control_register(GET_TLC59108REG_POS, 0, &read_reg_pos, 0);
                 control_register(GET_TLC59108REG_NUM_INFO, 0, &reg_need_rdwr_num, 0);
+                // 获取写入数据后 TLC59108工作模式寄存器中的工作模式
+                control_register(RD_REG_INFO, TLC59108_WORK_MODE_REG_ADDR, &read_reg_buff[4], 0x01);
+                // 若获取的工作模式 和 写入之前的工作模式不一样 则清除之前的工作参数
+                if (read_reg_buff[3] != read_reg_buff[4]) {
+                    control_register(RESET_PARAM_SEG, TLC59108_PARA_BASE_ADDR, NULL, 0);
+                }
             } else if (read_reg_buff[0] == WS2812DEV) {
                 control_register(GET_WS2812REG_POS, 0, &read_reg_pos, 0);
                 control_register(GET_WS2812REG_NUM_INFO, 0, &reg_need_rdwr_num, 0);
                 // 获取写入数据后 WS2812工作模式寄存器中的工作模式
-                control_register(RD_REG_INFO, 0x10, &read_reg_buff[2], 0x01);
+                control_register(RD_REG_INFO, WS2812_WORK_MODE_REG_ADDR, &read_reg_buff[2], 0x01);
                 // 若获取的工作模式 和 写入之前的工作模式不一样 则清除之前的工作参数
                 if (read_reg_buff[1] != read_reg_buff[2]) {
                     control_register(RESET_PARAM_SEG, WS2812_PARA_BASE_ADDR, NULL, 0);
@@ -546,10 +590,24 @@ static void ctrl_ws2812_breath(LedBarType_t led_bar, uint8_t *ctrl_para)
 
 static void ctrl_tlc59108_dimming(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-
+    TLC59108BarType_t tbar = (TLC59108BarType_t)led_bar;
+    uint8_t *pwmx_databuff = NULL;
+    if (tbar == NULL || ctrl_para == NULL) {
+        return;
+    }
+    pwmx_databuff = &ctrl_para[0];
+    tbar->dimming((void *)tbar, pwmx_databuff);
 }
 
 static void ctrl_tlc59108_blinking(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
-
+    TLC59108BarType_t tbar = (TLC59108BarType_t)led_bar;
+    uint8_t *pwmx_databuff = NULL;
+    if (tbar == NULL || ctrl_para == NULL) {
+        return;
+    }
+    pwmx_databuff = &ctrl_para[0];
+    tbar->render_param.group_duty_ctrl_reg = ctrl_para[8];
+    tbar->render_param.group_freq_ctrl_reg = ctrl_para[9];
+    tbar->blink((void *)tbar, ctrl_para[11] << 8 | ctrl_para[10], pwmx_databuff);
 }

@@ -352,13 +352,14 @@ static Rtv_Status _pwm_timer_init(PwmDevType_t pwm_dev_para)
     timer_parameter_struct timer_initpara;
     timer_oc_parameter_struct timer_ocintpara;
     uint32_t timer_periph;
-    uint16_t timer_channel, period_set;
+    uint16_t timer_channel, period_set, psc_set;
 
     if (pwm_dev_para == NULL) {
         return EINVAL;
     }
     period_set = (pwm_dev_para->driver_type == WS2812DEV ? GD32F3X0_PWM_TIMER_SET(WS2812_PWM_PERIOD):
-                                                           GD32F3X0_PWM_TIMER_SET(TLC59108_PWM_PERIOD));
+                                                           TLC59108_PWM_PERIOD);
+    psc_set = (pwm_dev_para->driver_type == WS2812DEV ? 0 : TLC59108_TIMER_PSC);
 
     for (uint8_t pwm_dev_chnl_cnt = 0; pwm_dev_chnl_cnt < pwm_dev_para->driver_channel_num; pwm_dev_chnl_cnt++) {
         timer_periph = pwm_dev_para->driver_channel[pwm_dev_chnl_cnt]._timer_attr.periph;
@@ -371,7 +372,7 @@ static Rtv_Status _pwm_timer_init(PwmDevType_t pwm_dev_para)
         memset((void *)&timer_ocintpara, 0, sizeof(timer_ocintpara));
 
         /* timer base struct config */
-        timer_initpara.prescaler = 0;
+        timer_initpara.prescaler = psc_set;
         timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;
         timer_initpara.period = period_set;
         timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;
@@ -608,13 +609,18 @@ static Rtv_Status _control_pwm(void *pwm_dev,
     uint32_t timer_periph, pulse, period;
     uint16_t timer_channel;
 
-    if (pwm_dev_para == NULL ||
+    if ((pwm_dev_para == NULL ||
         pwm_channel_index > pwm_dev_para->driver_channel_num ||
-        pwm_channel_index == 0) {
+        pwm_channel_index == 0) &&
+        cmd != PWM_CTRL_SET_DRV_TYPE &&
+        cmd != PWM_CTRL_DEV_DEINIT) {
         return EINVAL;
     }
-    timer_periph = pwm_dev_para->driver_channel[pwm_channel_index - 1]._timer_attr.periph;
-    timer_channel = pwm_dev_para->driver_channel[pwm_channel_index - 1]._timer_attr.channel;
+
+    if (cmd != PWM_CTRL_SET_DRV_TYPE && cmd != PWM_CTRL_DEV_DEINIT) {
+        timer_periph = pwm_dev_para->driver_channel[pwm_channel_index - 1]._timer_attr.periph;
+        timer_channel = pwm_dev_para->driver_channel[pwm_channel_index - 1]._timer_attr.channel;
+    }
 
     switch(cmd)
     {
@@ -636,17 +642,29 @@ static Rtv_Status _control_pwm(void *pwm_dev,
             if (_base_attr->set_period <= 0 || _base_attr->set_period < (1000/FTIMER)) {
                 period = 0;
             } else {
-                period = GD32F3X0_PWM_TIMER_SET(_base_attr->set_period);
+                if (pwm_dev_para->driver_type == WS2812DEV) {
+                    period = GD32F3X0_PWM_TIMER_SET(_base_attr->set_period);
+                } else if (pwm_dev_para->driver_type == TLC59108DEV) {
+                    period = _base_attr->set_period;
+                }
             }
             timer_autoreload_value_config(timer_periph, period);
 
             /* pulse vaild check */
             if (_base_attr->set_pulse <= 0 || _base_attr->set_pulse < (1000/FTIMER)) {
                 pulse = 0;
-            } else if (_base_attr->set_pulse > _base_attr->set_period) {
-                pulse = GD32F3X0_PWM_TIMER_SET(_base_attr->set_period);
+            } else if (_base_attr->set_pulse >= _base_attr->set_period) {
+                if (pwm_dev_para->driver_type == WS2812DEV) {
+                    pulse = GD32F3X0_PWM_TIMER_SET(_base_attr->set_period);
+                } else if (pwm_dev_para->driver_type == TLC59108DEV) {
+                    pulse = _base_attr->set_period;
+                }
             } else {
-                pulse = GD32F3X0_PWM_TIMER_SET(_base_attr->set_pulse);
+                if (pwm_dev_para->driver_type == WS2812DEV) {
+                    pulse = GD32F3X0_PWM_TIMER_SET(_base_attr->set_pulse);
+                } else if (pwm_dev_para->driver_type == TLC59108DEV) {
+                    pulse = _base_attr->set_pulse;
+                }
             }
 
             timer_channel_output_pulse_value_config(timer_periph, timer_channel, pulse);

@@ -87,7 +87,7 @@ void task_register(const TaskType task_type,
  */
 Rtv_Status task_ms_reset(const TaskType task_type,
                          const TaskLevelType task_level,
-                         const uint16_t _new_task_ms);
+                         const uint32_t _new_task_ms);
 
 /**
  * @brief 任务调度接口额

@@ -19,6 +19,8 @@
 #include "task_sch.h"
 #include "iap_config.h"
 #include "register_info.h"
+#include "tlc59108.h"
+#include "tlc59108_led_bar.h"
 
 /**
  * @brief WS2812灯条默认序号(第一条灯带)
@@ -34,7 +36,7 @@
  * @brief TLC59108灯条默认数量(一条灯带)
  *
  */
-#define TLC59108_BAR_DEFAULT_NUM            (0x01u)
+#define TLC59108_BAR_CHANNEL_NUM            (TLC59108_CHANNNEL_MAX_NUM)
 
 enum led_bar_cmd_mode
 {
@@ -54,7 +56,7 @@ enum ws2812_bar_ctrl_mode
 
 enum tlc59108_bar_ctrl_mode
 {
-    TLC59108_LED_DIMMING = 0x01,    // dimmming模式
+    TLC59108_LED_DIMMING,           // dimmming模式
     TLC59108_LED_BLINK              // blink模式
 };
 
@@ -71,13 +73,13 @@ enum driver_recv_len
      * @brief 控制TCL59108灯条需写入的字节数
      *
      */
-    TLC59108_RECV_LEN = 14,
+    TLC59108_RECV_LEN = 18,
 
     /**
      * @brief 控制WS2812灯条需写入的字节数
      *
      */
-    WS2812_RECV_LEN = 15
+    WS2812_RECV_LEN = 14
 };
 /******************************************************************************/
 /**
@@ -100,12 +102,12 @@ do {                                            \
         goto set_error;                         \
     }                                           \
 } while(0)
-#define BAR_REQ_LEN_CHECK(driver_type, recv_len)                            \
-do {                                                                        \
-    if ((driver_type == WS2812DEV && recv_len != WS2812_RECV_LEN) ||        \
-        (driver_type == TLC59108DEV && recv_len != TLC59108_RECV_LEN)) {    \
-        goto set_error;                                                     \
-    }                                                                       \
+#define BAR_REQ_LEN_CHECK(driver_type, recv_len)                                \
+do {                                                                            \
+    if ((driver_type == WS2812DEV && recv_len != WS2812_RECV_LEN + 1) ||        \
+        (driver_type == TLC59108DEV && recv_len != TLC59108_RECV_LEN + 1)) {    \
+        goto set_error;                                                         \
+    }                                                                           \
 } while(0)
 
 /**
@@ -184,19 +186,20 @@ do {                                                    \
  *  V1.2.0  Modify firmware to universal module driver
  *  V1.2.1  Add the interface comment
  *  V1.2.2  Add the wdgt but no test
+ *  V1.2.3  Add the tlc59108 driver but no test
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 2)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 3)
 
 /******************************************************************************/
 /**
  * @brief 灯条默认参数初始化接口
  *
- * @param ws2812_bar_index          WS2812灯条默认初始化选择的序号
- * @param tlc59108_bar_num          TLC59108默认初始化灯条数
+ * @param ws2812_led_num            WS2812灯条默认灯珠数
+ * @param tlc59108_channel_num      TLC59108默认初始化灯条通道数(3通道/1条灯带)
  * @return Rtv_Status               返回值 @SUCCESS:初始化成功  @其他值:初始化失败
  */
-Rtv_Status init_led_bars(const uint8_t ws2812_bar_index,
-                         const uint8_t tlc59108_bar_num);
+Rtv_Status init_led_bars(const uint8_t ws2812_led_num,
+                         const uint8_t tlc59108_channel_num);
 
 /**
  * @brief

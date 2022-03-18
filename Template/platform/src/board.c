@@ -39,7 +39,7 @@ void init_board(void)
     }
 
     // 灯条默认参数初始化
-    if (init_led_bars(WS2812_BAR_DEFAULT_INDEX, TLC59108_BAR_DEFAULT_NUM) != SUCCESS) {
+    if (init_led_bars(WS2812_LED_DEFAULT_NUM, TLC59108_BAR_CHANNEL_NUM) != SUCCESS) {
         return;
     }
 }

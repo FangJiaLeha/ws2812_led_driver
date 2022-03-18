@@ -72,8 +72,15 @@ typedef enum ctrl_reg_cmd
  * @brief WS2812/TLC59108寄存器参数区地址偏移
  *
  */
-#define WS2812_PARA_BASE_ADDR                   (0x13u)
-#define TLC59108_PARA_BASE_ADDR                 (0x03u)
+#define WS2812_PARA_BASE_ADDR                   (0x16u)
+#define TLC59108_PARA_BASE_ADDR                 (0x02u)
+
+/**
+ * @brief WS2812/TLC59108灯条工作模式寄存器地址
+ *
+ */
+#define WS2812_WORK_MODE_REG_ADDR               (0x13u)
+#define TLC59108_WORK_MODE_REG_ADDR             (0x01u)
 
 #define CTRL_REG_CMD_CHECK(cmd)                 \
 do {                                            \
@@ -94,7 +101,7 @@ do {                                            \
 #define REGADDR_CHECK(cmd, regAddr, regMaxNum)          \
 do {                                                    \
     if ((cmd == WR_RGE_INFO || cmd == RD_REG_INFO) &&   \
-        (regAddr == 0 || regAddr > regMaxNum)) {        \
+        (regAddr > regMaxNum - 1)) {                    \
         goto set_error;                                 \
     }                                                   \
 } while(0)

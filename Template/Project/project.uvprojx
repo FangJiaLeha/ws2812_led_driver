@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap;..\platform\function</IncludePath>
+              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap;..\platform\function;..\platform\bsp\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -545,16 +545,6 @@
           <GroupName>Platform</GroupName>
           <Files>
             <File>
-              <FileName>ws2812.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\ws2812.c</FilePath>
-            </File>
-            <File>
-              <FileName>ws2812_led_bar.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\ws2812_led_bar.c</FilePath>
-            </File>
-            <File>
               <FileName>board.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\board.c</FilePath>
@@ -608,6 +598,31 @@
               <FileName>register_info.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\function\register_info.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>ws2812.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\ws2812.c</FilePath>
+            </File>
+            <File>
+              <FileName>tlc59108.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\tlc59108.c</FilePath>
+            </File>
+            <File>
+              <FileName>ws2812_led_bar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\ws2812_led_bar.c</FilePath>
+            </File>
+            <File>
+              <FileName>tlc59108_led_bar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\tlc59108_led_bar.c</FilePath>
             </File>
           </Files>
         </Group>

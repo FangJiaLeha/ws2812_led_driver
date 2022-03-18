@@ -17,14 +17,14 @@ static uint32_t task_1ms_tick = 0;
 //==============================================================================
 struct task_list
 {
-    uint8_t task_level;
-    uint16_t task_ms_value;
+    const TaskLevelType task_level;
+    uint32_t task_ms_value;
     void (*task_callback)(void);
 };
 
 struct task_status
 {
-    uint8_t cur_task_level;
+    TaskLevelType cur_task_level;
     void (*cur_task_func)(void);
 };
 
@@ -64,7 +64,13 @@ static struct task_status task_types[] =
     },
 };
 
-static struct task_list *find_task_proccess(uint8_t _level)
+/**
+ * @brief 根据任务等级 调用其回调函数
+ *
+ * @param _level                任务等级@task_level
+ * @return struct task_list*    返回当前任务句柄
+ */
+static struct task_list *find_task_proccess(const TaskLevelType _level)
 {
     uint8_t tasks_num = ITEM_NUM(tasks);
 
@@ -81,19 +87,37 @@ static struct task_list *find_task_proccess(uint8_t _level)
 }
 
 //==============================================================================
+/**
+ * @brief Set the task ms tick object
+ *
+ * @param cur_tick 设置当前任务时间戳
+ *
+ * @note  主要用来保证当前任务执行后 下一个任务能顺利执行
+ */
 static void set_task_ms_tick(const uint32_t cur_tick)
 {
     task_1ms_tick = cur_tick;
 }
-
-static uint16_t get_max_task_ms_tick(void)
+/**
+ * @brief Get the max task ms tick object
+ *
+ * @return uint16_t 返回任务列表中设置的最大任务时间
+ *
+ * @note   主要比较初始10ms任务时间 和 自定义任务时间
+ */
+static uint32_t get_max_task_ms_tick(void)
 {
-    uint16_t task_10ms_value = tasks[TASK_10MS_LEVEL].task_ms_value;
-    uint16_t task_auto_set_ms_value = tasks[TASK_AUTO_SET_MS_LEVEL].task_ms_value;
+    uint32_t task_10ms_value = tasks[TASK_10MS_LEVEL].task_ms_value;
+    uint32_t task_auto_set_ms_value = tasks[TASK_AUTO_SET_MS_LEVEL].task_ms_value;
     return (task_10ms_value > task_auto_set_ms_value ? task_10ms_value : task_auto_set_ms_value);
 }
-
-static uint16_t get_task_ms_value(uint8_t _level)
+/**
+ * @brief Get the task ms value object
+ *
+ * @param _level        任务等级@task_level
+ * @return uint16_t     返回当前任务的任务时间
+ */
+static uint32_t get_task_ms_value(const TaskLevelType _level)
 {
     return tasks[_level].task_ms_value;
 }
@@ -125,7 +149,7 @@ set_error:
 
 Rtv_Status task_ms_reset(const TaskType task_type,
                          const TaskLevelType task_level,
-                         const uint16_t _new_task_ms)
+                         const uint32_t _new_task_ms)
 {
     TASK_TYPE_CHECK(task_type);
     TASK_LEVEL_CHECK(task_level);
@@ -149,7 +173,8 @@ void task_server(void)
 {
     struct task_list *tsk_lt = NULL;
     uint32_t ms_tick = get_task_ms_tick(), save_enter_tick;
-    uint16_t max_ms_tick = get_max_task_ms_tick();
+    // 获取当前任务列表中任务最大调度时间
+    uint32_t max_ms_tick = get_max_task_ms_tick();
 
     if( (ms_tick % max_ms_tick) ==
         (max_ms_tick == get_task_ms_value(TASK_AUTO_SET_MS_LEVEL) ? 0 : get_task_ms_value(TASK_AUTO_SET_MS_LEVEL)) ) {
