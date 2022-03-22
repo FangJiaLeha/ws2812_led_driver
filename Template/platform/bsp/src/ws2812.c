@@ -238,6 +238,7 @@ static Rtv_Status _control(void *dev, int cmd, void *arg)
         _update_led_data(ws_dev, ws_dev->dev_attr.ctrl_led_num);
         ws_dev->dev_attr.index_enable = 0x00; // 关闭通道输出
         free(ws_dev->dev_attr.render_buff);
+        ws_dev->dev_attr.render_buff = NULL;
 
         ws_dev->dev_attr.render_buff = (uint8_t (*)[3])malloc(ws2812_led_num_reset * 3);
         if( ws_dev->dev_attr.render_buff == NULL )

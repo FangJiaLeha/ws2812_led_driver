@@ -24,7 +24,9 @@ int main(void)
     {
         task_server();
         // 执行喂狗
+        #if defined(RELEASE) && (RELEASE == 0x01)
         clear_wdgt();
+        #endif
     }
     #endif
 }

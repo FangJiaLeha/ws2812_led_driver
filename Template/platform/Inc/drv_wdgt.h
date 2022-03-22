@@ -16,7 +16,7 @@
 //==============================================================================
 #define FRE_WDGT                (40000ul)       // 40KHz -> 40000Hz
 #define WDGT_PRES_DIV           (64u)           // 分频系数
-#define WDGT_TIMEOUT_SET        (1u)            // 超时时间 单位s
+#define WDGT_TIMEOUT_SET        (10u)            // 超时时间 单位s
 
 #define WDGT_RELOAD_VALUE(timeout)  (timeout * FRE_WDGT / WDGT_PRES_DIV)
 

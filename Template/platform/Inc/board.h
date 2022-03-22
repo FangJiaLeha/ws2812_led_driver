@@ -1,3 +1,13 @@
+/**
+ * @file board.h
+ * @author {fangjiale}
+ * @brief
+ * @version 0.1
+ * @date 2022-03-22
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #ifndef _BOARD_H
 #define _BOARD_H
 
@@ -12,6 +22,13 @@
 //==============================================================================
 /* i2c0 addr and buff size config */
 #define SET_I2C0_ADDR               (0x80)
+
+/**
+ * @brief 发布版本宏
+ *
+ * @note  设置为0 用于调试/ 设置为1 用于发行
+ */
+#define RELEASE                     (0x00u)
 
 //==============================================================================
 /**

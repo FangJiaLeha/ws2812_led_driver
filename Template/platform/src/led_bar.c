@@ -311,7 +311,7 @@ set_error:
  */
 void data_analysis_task(void)
 {
-    uint8_t read_reg_buff[20] = {0}, read_reg_pos = 0, reg_need_rdwr_num = 0;
+    uint8_t read_reg_buff[20] = {0}, read_reg_pos = 0, reg_need_rdwr_num = 0, reg_num;
     control_i2c(I2C0_DEV, I2C_GET_RECV_DATA_LEN, (void *)&recv_data_len);
     if (recv_data_len != 0) {
         if (recv_data_len > 0x01) {
@@ -323,6 +323,9 @@ void data_analysis_task(void)
             control_register(RD_REG_INFO, WS2812_WORK_MODE_REG_ADDR, &read_reg_buff[1], 0x01);
             control_register(RD_REG_INFO, TLC59108_WORK_MODE_REG_ADDR, &read_reg_buff[3], 0x01);
 
+            // 获取灯驱寄存器总数
+            control_register(GET_REG_NUM_INFO, 0, (void *)&reg_num, 0);
+
             // 写寄存器
             control_register(WR_RGE_INFO,
                              recv_data_buff[0],
@@ -332,7 +335,7 @@ void data_analysis_task(void)
             control_register(RD_REG_INFO,
                              0x00,
                              set_send_buff,
-                             0x1E);
+                             reg_num);
 
             // 尝试获取驱动寄存器中 设置的驱动设备类型
             control_register(GET_REG_DRIVER_TYPE, 0, &read_reg_buff[0], 0x01);
@@ -363,7 +366,7 @@ void data_analysis_task(void)
                              read_reg_pos,
                              &read_reg_buff[1],
                              reg_need_rdwr_num);
-            led_bar_control(read_reg_buff, reg_need_rdwr_num);
+            led_bar_control(read_reg_buff, reg_need_rdwr_num + 1);
         set_error:
             control_i2c(I2C0_DEV, I2C_RESET_RECV_BUFF, (void *)&recv_data_buff);
         }
@@ -467,7 +470,7 @@ static void ctrl_ws2812_blink(LedBarType_t led_bar, uint8_t *ctrl_para)
     // 设置默认闪烁周期50ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, blink_period * 50);
 
-    led_bar->blink(led_bar, blink_mode, blink_led_num, blink_start_pos);
+    led_bar->blink(led_bar, blink_mode, blink_led_num, blink_start_pos - 1);
 
 set_error:
     return;
@@ -505,7 +508,7 @@ static void ctrl_ws2812_base_water(LedBarType_t led_bar, uint8_t *ctrl_para)
     // 设置默认流水周期10ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, water_period * 10);
 
-    led_bar->water(led_bar, water_mode, singal_led_num, water_start_pos);
+    led_bar->water(led_bar, water_mode, singal_led_num, water_start_pos - 1);
 
 set_error:
     return;

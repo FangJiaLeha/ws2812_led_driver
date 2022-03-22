@@ -73,13 +73,13 @@ enum driver_recv_len
      * @brief 控制TCL59108灯条需写入的字节数
      *
      */
-    TLC59108_RECV_LEN = 18,
+    TLC59108_RECV_LEN = 18 + 1,
 
     /**
      * @brief 控制WS2812灯条需写入的字节数
      *
      */
-    WS2812_RECV_LEN = 14
+    WS2812_RECV_LEN = 15 + 1
 };
 /******************************************************************************/
 /**
@@ -104,8 +104,8 @@ do {                                            \
 } while(0)
 #define BAR_REQ_LEN_CHECK(driver_type, recv_len)                                \
 do {                                                                            \
-    if ((driver_type == WS2812DEV && recv_len != WS2812_RECV_LEN + 1) ||        \
-        (driver_type == TLC59108DEV && recv_len != TLC59108_RECV_LEN + 1)) {    \
+    if ((driver_type == WS2812DEV && recv_len != WS2812_RECV_LEN) ||            \
+        (driver_type == TLC59108DEV && recv_len != TLC59108_RECV_LEN)) {        \
         goto set_error;                                                         \
     }                                                                           \
 } while(0)
@@ -187,8 +187,9 @@ do {                                                    \
  *  V1.2.1  Add the interface comment
  *  V1.2.2  Add the wdgt but no test
  *  V1.2.3  Add the tlc59108 driver but no test
+ *  V1.2.4  Optimization logic and add the RELEASE macro for test
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 3)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 4)
 
 /******************************************************************************/
 /**

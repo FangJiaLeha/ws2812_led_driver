@@ -178,41 +178,25 @@ void task_server(void)
 
     if( (ms_tick % max_ms_tick) ==
         (max_ms_tick == get_task_ms_value(TASK_AUTO_SET_MS_LEVEL) ? 0 : get_task_ms_value(TASK_AUTO_SET_MS_LEVEL)) ) {
-        // 记录进入任务调度时的tick
-        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_AUTO_SET_MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
-        // 执行任务调度后 恢复tick
-        set_task_ms_tick(save_enter_tick);
     } else if ( (ms_tick % max_ms_tick) == get_task_ms_value(TASK_1MS_LEVEL)) {
-        // 记录进入任务调度时的tick
-        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_1MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
-        // 执行任务调度后 恢复tick
-        set_task_ms_tick(save_enter_tick);
     } else if( (ms_tick % max_ms_tick) == 
         (max_ms_tick == get_task_ms_value(TASK_10MS_LEVEL) ? 0 : get_task_ms_value(TASK_10MS_LEVEL)) ) {
-        // 记录进入任务调度时的tick
-        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_10MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
-        // 执行任务调度后 恢复tick
-        set_task_ms_tick(save_enter_tick);
     } else {
-        // 记录进入任务调度时的tick
-        save_enter_tick = get_task_ms_tick();
         tsk_lt = find_task_proccess(TASK_DATA_DEAL_0MS_LEVEL);
         if (tsk_lt != NULL) {
             tsk_lt->task_callback();
         }
-        // 执行任务调度后 恢复tick
-        set_task_ms_tick(save_enter_tick);
     }
 }
