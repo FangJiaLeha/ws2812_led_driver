@@ -21,7 +21,7 @@
  *
  */
 struct ws2812_render_param{
-    uint32_t show_pos;              // 显示灯条起始位置；
+    uint32_t show_pos;              // 用于改变显示位置
     uint8_t render_animation;       // 需要渲染的动画
     uint8_t render_color1[3];       // 渲染起始颜色颜色
     uint8_t render_color2[3];       // 用于渐变流水灯/呼吸模式时 记录终点颜色值
@@ -31,6 +31,7 @@ struct ws2812_render_param{
     uint16_t breath_timers;         // 记录呼吸次数 呼吸总周期/单次呼吸周期
     uint16_t breath_cnt;            // 呼吸次数计数变量
     float rgb_step[3];              // 记录rgb三色值步进量
+    uint8_t start_pos;              // 分段式流水灯模式下 起始位置记录
     uint8_t blink_flag:1;           // 用于标记闪烁模式时 前后两次状态
     uint8_t breath_state:1;         // 记录呼吸模式下 呼吸状态 0:呼 1:吸
 };
@@ -65,28 +66,51 @@ enum ws2812_led_ctrl_mode
     CHANGE_WATER_RIGHT,     // 渐变流水灯 - 右渐变流水模式
     BLINK_LEFT,             // 分段闪烁   - 左闪模式
     BLINK_RIGHT,            // 分段闪烁   - 右闪模式
+    INCREASE_WATER_LEFT,    // 递增式流水灯 - 左递增模式
+    INCREASE_WATER_RIGHT,   // 递增式流水灯 - 右递增模式
+    SECTOR_WATER_LEFT,      // 分段式流水灯 - 左分段模式
+    SECTOR_WATER_RIGHT,     // 分段式流水灯 - 右分段模式
     BREATH                  // 呼吸模式
 };
 
 #define BREATH_SINGAL_PERIOD    20      // 设置呼吸模式下 灯条单次呼吸周期 ms
 
-#define BASE_WATER_MODE_CHECK(_water_mode)                                      \
-do {                                                                            \
-    if (_water_mode != BASE_WATER_LEFT && _water_mode != BASE_WATER_RIGHT) {    \
-        goto set_error;                                                         \
-    }                                                                           \
+#define BASE_WATER_MODE_CHECK(_water_mode)                                     \
+do {                                                                           \
+    if (_water_mode != BASE_WATER_LEFT &&                                      \
+        _water_mode != BASE_WATER_RIGHT) {                                     \
+        goto set_error;                                                        \
+    }                                                                          \
 } while(0)
 
-#define CHANGE_WATER_MODE_CHECK(_water_mode)                                        \
-do {                                                                                \
-    if (_water_mode != CHANGE_WATER_LEFT && _water_mode != CHANGE_WATER_RIGHT) {    \
-        goto set_error;                                                             \
-    }                                                                               \
+#define CHANGE_WATER_MODE_CHECK(_water_mode)                                   \
+do {                                                                           \
+    if (_water_mode != CHANGE_WATER_LEFT &&                                    \
+        _water_mode != CHANGE_WATER_RIGHT) {                                   \
+        goto set_error;                                                        \
+    }                                                                          \
 } while(0)
 
 #define BLINK_MODE_CHECK(_blink_mode)                                          \
 do {                                                                           \
-    if (_blink_mode != BLINK_LEFT && _blink_mode != BLINK_RIGHT) {             \
+    if (_blink_mode != BLINK_LEFT &&                                           \
+        _blink_mode != BLINK_RIGHT) {                                          \
+        goto set_error;                                                        \
+    }                                                                          \
+} while(0)
+
+#define INCREASE_WATER_MODE_CHECK(_water_mode)                                 \
+do {                                                                           \
+    if (_water_mode != INCREASE_WATER_LEFT &&                                  \
+        _water_mode != INCREASE_WATER_RIGHT) {                                 \
+        goto set_error;                                                        \
+    }                                                                          \
+} while(0)
+
+#define SECTOR_WATER_MODE_CHECK(_water_mode)                                   \
+do {                                                                           \
+    if (_water_mode != SECTOR_WATER_LEFT &&                                    \
+        _water_mode != SECTOR_WATER_RIGHT) {                                   \
         goto set_error;                                                        \
     }                                                                          \
 } while(0)

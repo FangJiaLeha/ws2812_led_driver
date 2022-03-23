@@ -32,6 +32,8 @@ static void ctrl_ws2812_on(LedBarType_t led_bar, uint8_t *ctrl_para);
 static void ctrl_ws2812_blink(LedBarType_t led_bar, uint8_t *ctrl_para);
 static void ctrl_ws2812_base_water(LedBarType_t led_bar, uint8_t *ctrl_para);
 static void ctrl_ws2812_change_water(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_increase_water(LedBarType_t led_bar, uint8_t *ctrl_para);
+static void ctrl_ws2812_sector_water(LedBarType_t led_bar, uint8_t *ctrl_para);
 static void ctrl_ws2812_breath(LedBarType_t led_bar, uint8_t *ctrl_para);
 /**
  * @brief TLC59108灯条控制接口
@@ -75,6 +77,16 @@ const struct cmd_list ws2812_ctrl_cmds[] = {
      * @brief 控制WS2812灯条进入渐变流水灯模式
      */
     {WS2812_LED_CHANGE_WATER, ctrl_ws2812_change_water},
+
+    /**
+     * @brief 控制WS2812灯条进入递增式流水灯模式
+     */
+    {WS2812_LED_INCREASE_WATER, ctrl_ws2812_increase_water},
+
+    /**
+     * @brief 控制WS2812灯条进入分段式流水灯模式
+     */
+    {WS2812_LED_SECTOR_WATER, ctrl_ws2812_sector_water},
 
     /**
      * @brief 控制WS2812灯条进入呼吸模式
@@ -316,8 +328,10 @@ void data_analysis_task(void)
     if (recv_data_len != 0) {
         if (recv_data_len > 0x01) {
             control_i2c(I2C0_DEV, I2C_RESET_RECV_DATA_LEN, NULL);
+            #if 0
             // 接收数据后 先进行XOR校验
             XOR_CHECK(recv_data_buff[recv_data_len - 1], CheckXOR(recv_data_buff, recv_data_len));
+            #endif
 
             // 获取当前WS2812/TLC59108灯条 工作模式寄存器中设置的工作模式
             control_register(RD_REG_INFO, WS2812_WORK_MODE_REG_ADDR, &read_reg_buff[1], 0x01);
@@ -558,10 +572,80 @@ set_error:
 }
 
 /**
+ * @brief 控制WS2812灯条进入递增式流水灯模式
+ *
+ * @param led_bar       WS2812灯条对象地址
+ * @param ctrl_para     WS2812灯条控制参数
+ */
+static void ctrl_ws2812_increase_water(LedBarType_t led_bar, uint8_t *ctrl_para)
+{
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
+    uint8_t singal_led_num, water_mode, water_period;
+    if (NULL == ctrl_para || NULL == wbar) {
+        return;
+    }
+
+    wbar->render_param.render_color1[0] = (float)ctrl_para[0];
+    wbar->render_param.render_color1[1] = (float)ctrl_para[1];
+    wbar->render_param.render_color1[2] = (float)ctrl_para[2];
+    singal_led_num = ctrl_para[7];
+    water_mode = ctrl_para[9];
+    water_period = ctrl_para[10] << 8 | ctrl_para[11];
+
+    INCREASE_WATER_MODE_CHECK(water_mode);
+
+    // 设置默认流水周期10ms
+    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, water_period * 10);
+
+    led_bar->water(led_bar, water_mode, singal_led_num, 0);
+
+set_error:
+    return;
+}
+
+/**
+ * @brief 控制WS2812灯条进入分段式流水灯模式
+ *
+ * @param led_bar       WS2812灯条对象地址
+ * @param ctrl_para     WS2812灯条控制参数
+ */
+static void ctrl_ws2812_sector_water(LedBarType_t led_bar, uint8_t *ctrl_para)
+{
+    WS2812BarType_t wbar = (WS2812BarType_t)led_bar;
+    uint8_t singal_led_num, water_mode, water_start_pos, water_period;
+    if (NULL == ctrl_para || NULL == wbar) {
+        return;
+    }
+
+    wbar->render_param.render_color1[0] = (float)ctrl_para[0];
+    wbar->render_param.render_color1[1] = (float)ctrl_para[1];
+    wbar->render_param.render_color1[2] = (float)ctrl_para[2];
+    singal_led_num = ctrl_para[7];
+    water_start_pos = ctrl_para[8];
+    water_mode = ctrl_para[9];
+    water_period = ctrl_para[10] << 8 | ctrl_para[11];
+
+    if (water_start_pos == 0 ||
+        water_period == 0||
+        water_start_pos > wbar->led_num) {
+        return;
+    }
+    SECTOR_WATER_MODE_CHECK(water_mode);
+
+    // 设置默认流水周期10ms
+    task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, water_period * 10);
+
+    led_bar->water(led_bar, water_mode, singal_led_num, water_start_pos - 1);
+
+set_error:
+    return;
+}
+
+/**
  * @brief 控制WS2812灯条进入呼吸模式
  *
- * @param led_bar
- * @param ctrl_para
+ * @param led_bar       WS2812灯条对象地址
+ * @param ctrl_para     WS2812灯条控制参数
  */
 static void ctrl_ws2812_breath(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
@@ -591,6 +675,12 @@ static void ctrl_ws2812_breath(LedBarType_t led_bar, uint8_t *ctrl_para)
     led_bar->breath(led_bar, breath_period * 100);
 }
 
+/**
+ * @brief 控制TLC59108灯条进入dimming模式
+ *
+ * @param led_bar       TLC59108灯条对象地址
+ * @param ctrl_para     TLC59108灯条控制参数
+ */
 static void ctrl_tlc59108_dimming(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
     TLC59108BarType_t tbar = (TLC59108BarType_t)led_bar;
@@ -602,6 +692,12 @@ static void ctrl_tlc59108_dimming(LedBarType_t led_bar, uint8_t *ctrl_para)
     tbar->dimming((void *)tbar, pwmx_databuff);
 }
 
+/**
+ * @brief 控制TLC59108灯条进入blinking模式
+ *
+ * @param led_bar       TLC59108灯条对象地址
+ * @param ctrl_para     TLC59108灯条控制参数
+ */
 static void ctrl_tlc59108_blinking(LedBarType_t led_bar, uint8_t *ctrl_para)
 {
     TLC59108BarType_t tbar = (TLC59108BarType_t)led_bar;

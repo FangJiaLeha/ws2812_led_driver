@@ -38,12 +38,6 @@
  */
 #define TLC59108_BAR_CHANNEL_NUM            (TLC59108_CHANNNEL_MAX_NUM)
 
-enum led_bar_cmd_mode
-{
-    IAP_CMD = 0x16,
-    BASE_CMD = 0x90
-};
-
 enum ws2812_bar_ctrl_mode
 {
     WS2812_LED_OFF = 0x01,     // 熄灭模式
@@ -51,6 +45,8 @@ enum ws2812_bar_ctrl_mode
     WS2812_LED_BLINK,          // 分段闪烁模式
     WS2812_LED_BASE_WATER,     // 基础流水灯模式
     WS2812_LED_CHANGE_WATER,   // 渐变流水灯模式
+    WS2812_LED_INCREASE_WATER, // 递增式流水灯模式
+    WS2812_LED_SECTOR_WATER,   // 分段式流水灯模式
     WS2812_LED_BREATH,         // 呼吸灯模式
 };
 
@@ -58,13 +54,6 @@ enum tlc59108_bar_ctrl_mode
 {
     TLC59108_LED_DIMMING,           // dimmming模式
     TLC59108_LED_BLINK              // blink模式
-};
-
-enum led_bar_iap_ctrl_mode
-{
-    SOFT_RESET = 0x01,  // 软复位
-    CHECK_WORK_MODE,    // 查询工作在BOOT/APP模式(1/0)
-    GET_SOFT_VERSION,   // 获取软件版本
 };
 
 enum driver_recv_len
@@ -135,19 +124,6 @@ do {                                                                    \
     }                                                                   \
 } while(0)
 
-#define BAR_CMD_CTL_MODE_CHECK(_ctrl_mode)              \
-do {                                                    \
-    if (_ctrl_mode != LED_OFF &&                        \
-        _ctrl_mode != LED_ON &&                         \
-        _ctrl_mode != LED_RGB &&                        \
-        _ctrl_mode != LED_BLINK &&                      \
-        _ctrl_mode != LED_WATER &&                      \
-        _ctrl_mode != LED_BREATH &&                     \
-        _ctrl_mode != LED_SET) {                        \
-        goto set_error;                                 \
-    }                                                   \
-} while(0)
-
 /**
  * @brief TLC59108灯驱控制参数有效性判断
  *
@@ -188,8 +164,9 @@ do {                                                    \
  *  V1.2.2  Add the wdgt but no test
  *  V1.2.3  Add the tlc59108 driver but no test
  *  V1.2.4  Optimization logic and add the RELEASE macro for test
+ *  V1.2.5  Add the new UI needs and modify ws2812_led_bar driver
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 4)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 5)
 
 /******************************************************************************/
 /**
