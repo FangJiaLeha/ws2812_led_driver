@@ -328,7 +328,7 @@ void data_analysis_task(void)
     if (recv_data_len != 0) {
         if (recv_data_len > 0x01) {
             control_i2c(I2C0_DEV, I2C_RESET_RECV_DATA_LEN, NULL);
-            #if 0
+            #if 0 // 为兼容TLC59108灯条固件 去掉XOR校验
             // 接收数据后 先进行XOR校验
             XOR_CHECK(recv_data_buff[recv_data_len - 1], CheckXOR(recv_data_buff, recv_data_len));
             #endif

@@ -165,8 +165,9 @@ do {                                                                    \
  *  V1.2.3  Add the tlc59108 driver but no test
  *  V1.2.4  Optimization logic and add the RELEASE macro for test
  *  V1.2.5  Add the new UI needs and modify ws2812_led_bar driver
+ *  V1.2.6  Adapt the sector water mode、fix the increase water mode bug and test OK
  */
-#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 5)
+#define PROGRAM_VERSION			MK_PROGRAM_VERSION(1, 2, 6)
 
 /******************************************************************************/
 /**

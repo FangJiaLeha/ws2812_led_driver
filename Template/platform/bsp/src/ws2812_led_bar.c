@@ -129,6 +129,7 @@ static Rtv_Status _ws2812_water(LedBarType_t bar,
         wbar->render_param.show_pos = water_start_pos;
     } else if (mode == SECTOR_WATER_LEFT || mode == SECTOR_WATER_RIGHT) { // 分段式流水灯模式
         wbar->render_param.start_pos = wbar->render_param.show_pos;
+        wbar->render_param.dis_led_cnts = 0;
     }
     wbar->render_switch = 1;
 
@@ -320,8 +321,8 @@ void ws2812_render(void)
         color[0] = WS2812_BAR_DEV->render_param.render_color1[0];
         color[1] = WS2812_BAR_DEV->render_param.render_color1[1];
         color[2] = WS2812_BAR_DEV->render_param.render_color1[2];
-        pos = (WS2812_BAR_DEV->render_param.show_pos++) % WS2812_BAR_DEV->led_num;
-        for (uint8_t i = 0; i <= pos; i++) {
+        pos = (WS2812_BAR_DEV->render_param.show_pos) % (WS2812_BAR_DEV->led_num + 1);
+        for (uint8_t i = 0; i < pos; i++) {
             if (WS2812_BAR_DEV->render_param.render_animation == INCREASE_WATER_LEFT) {
                 WS2812_BAR_DEV->dis_buff[i][0] = WS2812_BAR_DEV->render_param.render_color1[0];
                 WS2812_BAR_DEV->dis_buff[i][1] = WS2812_BAR_DEV->render_param.render_color1[1];
@@ -334,13 +335,22 @@ void ws2812_render(void)
         }
         ws_dev->dev_attr.ctrl_led_num = WS2812_BAR_DEV->led_num;
         ws_dev->ws2812_dev_ops.control( ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL );
+        WS2812_BAR_DEV->render_param.show_pos++;
     } else if(WS2812_BAR_DEV->render_param.render_animation == SECTOR_WATER_LEFT ||
               WS2812_BAR_DEV->render_param.render_animation == SECTOR_WATER_RIGHT) { // 分段式流水
         color[0] = WS2812_BAR_DEV->render_param.render_color1[0];
         color[1] = WS2812_BAR_DEV->render_param.render_color1[1];
         color[2] = WS2812_BAR_DEV->render_param.render_color1[2];
-        for (uint8_t i = 0; i < WS2812_BAR_DEV->render_param.render_light_leds; i++) {
-            pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->led_num;
+        for (uint8_t i = 0;
+             i < WS2812_BAR_DEV->render_param.render_light_leds - WS2812_BAR_DEV->render_param.dis_led_cnts;
+             i++) {
+            // 当前流水灯流动到尾端时 逻辑处理
+            if (WS2812_BAR_DEV->render_param.show_pos < WS2812_BAR_DEV->led_num) {
+                pos = ( WS2812_BAR_DEV->render_param.show_pos - i ) % WS2812_BAR_DEV->led_num;
+            } else {
+                // 一次流水熄灭渲染的灯珠
+                pos = WS2812_BAR_DEV->led_num - i - 1;
+            }
             if (WS2812_BAR_DEV->render_param.render_animation == SECTOR_WATER_LEFT) {
                 WS2812_BAR_DEV->dis_buff[pos][0] = WS2812_BAR_DEV->render_param.render_color1[0];
                 WS2812_BAR_DEV->dis_buff[pos][1] = WS2812_BAR_DEV->render_param.render_color1[1];
@@ -354,10 +364,15 @@ void ws2812_render(void)
         WS2812_BAR_DEV->render_param.show_pos++;
         ws_dev->dev_attr.ctrl_led_num = WS2812_BAR_DEV->led_num;
         ws_dev->ws2812_dev_ops.control(ws_dev, WS2812_CTRL_UPDATE_DEVDATA, NULL);
-        // 左分段式流水模式下 当到达尾灯位置时 重新定位显示的起始位置
-        if (WS2812_BAR_DEV->render_param.render_animation == SECTOR_WATER_LEFT &&
-            WS2812_BAR_DEV->render_param.show_pos == WS2812_BAR_DEV->led_num) {
-            WS2812_BAR_DEV->render_param.show_pos = WS2812_BAR_DEV->render_param.start_pos;
+        if (WS2812_BAR_DEV->render_param.show_pos >= WS2812_BAR_DEV->led_num) {
+            WS2812_BAR_DEV->render_param.dis_led_cnts += 1;
+            // 当熄灭完所有渲染的灯珠时 重置流水灯参数
+            if (WS2812_BAR_DEV->render_param.dis_led_cnts >
+                WS2812_BAR_DEV->render_param.render_light_leds) {
+                WS2812_BAR_DEV->render_param.show_pos =
+                WS2812_BAR_DEV->render_param.start_pos;
+                WS2812_BAR_DEV->render_param.dis_led_cnts = 0;
+            }
         }
     } else {
     }
@@ -413,6 +428,7 @@ Rtv_Status init_ws2812_bar(WS2812BarType_t wbar,
 
     // 初始化分段式流水灯模式下 起始位置
     wbar->render_param.start_pos = 0;
+    wbar->render_param.dis_led_cnts = 0;
 
     /* 重写该ws2812_bar父类led_bar的blink/water/breath方法 */
     wbar->parent.blink = _ws2812_blink;

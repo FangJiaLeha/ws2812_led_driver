@@ -34,6 +34,7 @@ struct ws2812_render_param{
     uint8_t start_pos;              // 分段式流水灯模式下 起始位置记录
     uint8_t blink_flag:1;           // 用于标记闪烁模式时 前后两次状态
     uint8_t breath_state:1;         // 记录呼吸模式下 呼吸状态 0:呼 1:吸
+    uint8_t dis_led_cnts:6;         // 记录分段模式下 当显示到灯条尾端的时 需熄灭灯珠计数
 };
 /**
  * @brief WS2812灯条对象结构体声明
