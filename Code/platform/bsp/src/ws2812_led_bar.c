@@ -89,7 +89,7 @@ static RtvStatus _ws2812_blink(led_bar_t bar,
  */
 static RtvStatus _ws2812_water(led_bar_t bar,
                                 const uint8_t mode,
-                                const uint8_t single_led_num,
+                                uint8_t single_led_num,
                                 const uint8_t water_start_pos)
 {
     ws2812_bar_t wbar = (ws2812_bar_t)bar;
@@ -97,8 +97,7 @@ static RtvStatus _ws2812_water(led_bar_t bar,
     uint8_t save_cur_state = 0;
     if (wbar == NULL ||
         single_led_num == 0 ||
-        single_led_num > wbar->led_num ||
-        water_start_pos > wbar->led_num)
+        single_led_num > wbar->led_num)
     {
         return EINVAL;
     }
@@ -132,6 +131,12 @@ static RtvStatus _ws2812_water(led_bar_t bar,
             (float)(wbar->render_param.render_color2[2] - wbar->render_param.render_color1[2]) / single_led_num;
     }
 
+    // 分段模式下 当流水起始位置 + 流水灯数 > 最大灯数 需对流水灯数进行处理
+    if ( (mode == SECTOR_WATER_LEFT || mode == SECTOR_WATER_RIGHT) &&
+         (water_start_pos + single_led_num > wbar->led_num) )
+    {
+        single_led_num = wbar->led_num - water_start_pos;
+    }
     wbar->render_param.render_light_leds = single_led_num;
     wbar->render_param.show_pos = single_led_num + water_start_pos - 1;
     // 递增式流水灯模式 显示起始位置为0

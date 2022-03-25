@@ -54,7 +54,7 @@ typedef struct
     RtvStatus (*_parent_off)(led_bar_t bar);
     RtvStatus (*water)(led_bar_t bar,
                        const uint8_t mode,
-                       const uint8_t single_led_num,
+                       uint8_t single_led_num,
                        const uint8_t water_start_pos);
     RtvStatus (*blink)(led_bar_t bar,
                        const uint8_t mode,

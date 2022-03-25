@@ -23,10 +23,10 @@ JLinkLog.txt
 *.doc
 *docx
 MDK-ARM/MC_F722/
-Template/Project/Objects/*
+Code/Project/Objects/*
 *.uvguix.*
-Template/Project/*.uvoptx
-Template/Project/*.scvd
-Template/Project/*.bin
-Template/Project/Listings/*
-Template/Project/*.uvguix.*
+Code/Project/*.uvoptx
+Code/Project/*.scvd
+Code/Project/*.bin
+Code/Project/Listings/*
+Code/Project/*.uvguix.*

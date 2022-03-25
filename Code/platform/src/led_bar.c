@@ -688,7 +688,7 @@ static void ctrl_ws2812_increase_water(led_bar_t led_bar, uint8_t *ctrl_para)
     // 设置默认流水周期10ms
     task_ms_reset(WS2812_RENDER_TASK, TASK_AUTO_SET_MS_LEVEL, water_period * 10);
 
-    wbar->water(led_bar, water_mode, singal_led_num, 0);
+    wbar->water(led_bar, water_mode, singal_led_num, 1);
 
 set_error:
     return;

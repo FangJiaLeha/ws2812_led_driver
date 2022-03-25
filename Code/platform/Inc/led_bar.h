@@ -176,8 +176,9 @@ enum driver_recv_len
  *  V1.2.5  Add the new UI needs and modify ws2812_led_bar driver
  *  V1.2.6  Adapt the sector water mode、fix the increase water mode bug and test OK
  *  V1.2.7  After firmware review version
+ *  V1.2.8  Function selftest, then fix the sector water bug
  */
-#define PROGRAM_VERSION MK_PROGRAM_VERSION(1, 2, 7)
+#define PROGRAM_VERSION MK_PROGRAM_VERSION(1, 2, 8)
 
 /******************************************************************************/
 /**

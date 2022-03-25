@@ -186,7 +186,7 @@ void I2C0_EV_IRQHandler(void)
         i2c_interrupt_flag_clear(I2C0, I2C_INT_FLAG_TBE);
         if (i2c_devs[0].recv_cnt == 1)
         {
-            i2c_devs[0].send_cnt = i2c_devs[0].recv_buff[0] - 1;
+            i2c_devs[0].send_cnt = i2c_devs[0].recv_buff[0];
         }
         i2c_data_transmit(I2C0, i2c_devs[0].send_buff[(i2c_devs[0].send_cnt++) % (i2c_devs[0].malloc_size)]);
         i2c_devs[0].recv_cnt = 0;
