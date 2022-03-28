@@ -18,17 +18,11 @@
 #include "register_info.h"
 #include "ws2812_led_bar.h"
 #include "drv_wdgt.h"
+#include "test.h"
 
 //==============================================================================
 /* i2c0 addr and buff size config */
 #define SET_I2C0_ADDR (0x80)
-
-/**
- * @brief 发布版本宏
- *
- * @note  设置为0 用于调试/ 设置为1 用于发行
- */
-#define RELEASE (0x01u)
 
 //==============================================================================
 /**

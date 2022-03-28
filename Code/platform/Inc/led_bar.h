@@ -177,8 +177,9 @@ enum driver_recv_len
  *  V1.2.6  Adapt the sector water mode、fix the increase water mode bug and test OK
  *  V1.2.7  After firmware review version
  *  V1.2.8  Function selftest, then fix the sector water bug
+ *  V1.2.9  Modify the test.c/test.h and support regist test task
  */
-#define PROGRAM_VERSION MK_PROGRAM_VERSION(1, 2, 8)
+#define PROGRAM_VERSION MK_PROGRAM_VERSION(1, 2, 9)
 
 /******************************************************************************/
 /**

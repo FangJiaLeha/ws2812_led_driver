@@ -159,6 +159,7 @@ static RtvStatus ws2812_bar_set_color(led_bar_t bar, float *color)
     return SUCCESS;
 }
 
+#if 0 // 为兼容TLC59108灯条 去掉XOR校验
 static uint8_t CheckXOR(const uint8_t *data_buff, uint8_t buff_len)
 {
     uint8_t checkXor = 0;
@@ -173,6 +174,7 @@ static uint8_t CheckXOR(const uint8_t *data_buff, uint8_t buff_len)
     }
     return checkXor;
 }
+#endif
 
 /******************************************************************************/
 RtvStatus init_led_bars(const uint8_t ws2812_led_num,
@@ -236,7 +238,7 @@ RtvStatus init_led_bars(const uint8_t ws2812_led_num,
  * @brief led灯带控制协议接口
  *
  */
-#if (defined(_TEST_) && _TEST_ == 0x01)
+#if (defined(_FUNC_TEST_) && _FUNC_TEST_ == 0x01)
 void led_bar_control(uint8_t *req, uint8_t req_len)
 #else
 static void led_bar_control(uint8_t *req, uint8_t req_len)
@@ -381,11 +383,11 @@ void data_analysis_task(void)
             // 获取灯驱寄存器总数
             control_register(GET_REG_NUM_INFO, 0, (void *)&reg_num, 0);
 
-            // 写寄存器
+            // 写寄存器 为兼容TLC59108灯条不带XOR校验 (真实数据长度 = 接收长度 - 1)
             control_register(WR_RGE_INFO,
                              recv_data_buff[0],
                              &recv_data_buff[1],
-                             recv_data_len - 2);
+                             recv_data_len - 1);
             // 实时获取寄存器的数据 到发送buff中
             control_register(RD_REG_INFO,
                              0x00,

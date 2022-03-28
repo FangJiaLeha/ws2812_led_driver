@@ -31,9 +31,6 @@ struct dev_ops
     RtvStatus (*control)(void *dev, const int cmd, void *args);
 };
 
-/* test macro */
-#define _TEST_ 0x00
-
 #define EINVAL 2   /* Invalid argument */
 #define ETIMEOUT 3 /* Timed out */
 #define EFULL 4    /* The resource is full */

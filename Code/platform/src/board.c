@@ -17,10 +17,8 @@ void init_board(void)
     nvic_priority_group_set(NVIC_PRIGROUP_PRE4_SUB0);
     systick_config();
 
-#if defined(RELEASE) && (RELEASE == 0x01u)
     // 初始化看门狗
     init_wdgt(WDGT_TIMEOUT_SET);
-#endif
 
     // 初始化PWM设备(pwm通道配置)
     init_pwm_dev();

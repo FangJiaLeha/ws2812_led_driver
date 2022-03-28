@@ -3,187 +3,291 @@
  * @author {fangjiale}
  * @brief
  * @version 0.1
- * @date 2022-03-15
+ * @date 2022-03-26
  *
  * @copyright Copyright (c) 2022
  *
  */
 #include "test.h"
 
-uint8_t flag = 0;
+#if defined(_USING_TEST) && (_USING_TEST == 0x01)
 
-void test_func_enter(void)
+typedef struct
 {
-#if (defined(_PWM_TEST) && _PWM_TEST == 0x01u)
-    uint16_t buffer[] = {1250 * 1 / 2, 0, PWM_ONE, 0, PWM_ZERO, 0};
-    uint16_t buffer1[] = {PWM_ONE};
-    write_pwm(0, buffer, sizeof(buffer) / sizeof(buffer[0]));
-    write_pwm(0, buffer1, sizeof(buffer1) / sizeof(buffer1[0]));
-    struct pwm_base_attr attr = {TIMER_PERIOD / 2, TIMER_PERIOD};
-    struct pwm_base_attr attr1 = {TIMER_PERIOD / 2, TIMER_PERIOD * 2};
-    control_pwm(0, PWM_CMD_SET, (void *)&attr);
-    control_pwm(0, PWM_CMD_DISABLE, (void *)&attr);
-    control_pwm(0, PWM_CMD_ENABLE, (void *)&attr);
-    control_pwm(0, PWM_CMD_SET, (void *)&attr1);
-    control_pwm(0, PWM_CMD_DISABLE, (void *)&attr1);
-    control_pwm(0, PWM_CMD_ENABLE, (void *)&attr1);
-#endif
+    uint8_t *cmd_name;       // 测试结点命令名
+    void (*cmd_callback)(void); // 测试结点命令对应的执行函数
+} TestCmdNodeType;
+typedef TestCmdNodeType *pTestCmdNodeType;
 
-#if (defined(_TEST_) && _TEST_ == 0x01)
-    extern uint8_t CheckXOR(const uint8_t *data_buff, uint8_t buff_len);
-    extern void led_bar_control(uint8_t * req, uint8_t req_len);
-#endif
-#if (defined(_WS2812_DRV_TSET) && _WS2812_DRV_TSET == 0x01)
-    init_led_bars(LED_BAR_INDEX);
-#endif
+typedef struct
+{
+    /**
+     * @brief 指向一个测试任务的TEST_TASK_NUM个测试结点
+     *
+     */
+    TestCmdNodeType (*cmdNodes)[TEST_TASK_NUM];
+    /**
+     * @brief 指向一个测试任务的空闲测试结点总数
+     *
+     */
+    const uint8_t (*freeNodesAll)[1];
+    /**
+     * @brief 指向一个测试任务的空闲测试结点计数
+     *
+     */
+    uint8_t (*freeNodesCnt)[1];
+    void (*init_task)(void *dev,
+                      const uint8_t test_node_cmd_len);
+    void (*regist_task)(void *dev,
+                        const TestType test_type,
+                        const char *test_cmd_name,
+                        void (*test_callback)(void));
+    void (*schedule_task)(void *dev,
+                          const TestType test_type);
+} TestDevType;
+typedef TestDevType *pTestDevType;
 
-#if (defined(_TASH_SCH_TEST) && _TASH_SCH_TEST == 0x01)
-    task_register(WS2812_RENDER_TASK, TASK_10MS_LEVEL, ws2812_render);
-#endif
 
-#if (defined(_LED_BAR_TEST) && _LED_BAR_TEST == 0x01)
-    uint8_t req[] = {0x90, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-#if (defined(_LED_OFF_TEST) && _LED_OFF_TEST == 0x01)
-    req[2] = LED_OFF;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#endif
+static void _init(void *dev,
+                  const uint8_t test_node_cmd_len);
+static void _regist(void *dev,
+                    const TestType test_type,
+                    const char *test_cmd_name,
+                    void (*test_callback)(void));
+static void _schedule(void *dev,
+                      const TestType test_type);
 
-#if (defined(_LED_ON_TEST) && _LED_ON_TEST == 0x01)
-    req[2] = LED_ON;
-    /* 白色常亮测试 */
-    req[6] = 1;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 红色常亮测试 */
-    req[6] = 2;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 绿色常亮测试 */
-    req[6] = 3;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 蓝色常亮测试 */
-    req[6] = 4;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 黄色常亮测试 */
-    req[6] = 5;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 青色常亮测试 */
-    req[6] = 6;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 紫色常亮测试 */
-    req[6] = 7;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 异常颜色测试 */
-    req[6] = 8;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 黑色常亮测试 */
-    req[6] = 0;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#endif
+/**
+ * @brief 静态编译定义测试设备
+ *
+ */
+static TestDevType test_dev =
+{
+    .cmdNodes = NULL,
+    .freeNodesAll = NULL,
+    .freeNodesCnt = NULL,
+    .init_task = _init,
+    .regist_task = _regist,
+    .schedule_task = _schedule
+};
 
-#if (defined(_LED_RGB_TEST) && _LED_RGB_TEST == 0x01)
-    req[2] = LED_RGB;
-    uint32_t rgb_value;
-    /* 蓝色测试 */
-    rgb_value = 0x00FFFFul;
-    req[4] = rgb_value >> 16;
-    req[5] = rgb_value >> 8 & 0xFF;
-    req[6] = rgb_value & 0xFF;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 紫色测试 */
-    rgb_value = 0xFF00FFul;
-    req[4] = rgb_value >> 16;
-    req[5] = rgb_value >> 8 & 0xFF;
-    req[6] = rgb_value & 0xFF;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 黄色测试 */
-    rgb_value = 0xFFFF00ul;
-    req[4] = rgb_value >> 16;
-    req[5] = rgb_value >> 8 & 0xFF;
-    req[6] = rgb_value & 0xFF;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#endif
+/**
+ * @brief 初始化测试设备
+ *
+ * @param dev   设备地址
+ * @param test_node_cmd_len     测试结点命令长度
+ */
+static void _init(void *dev,
+                  const uint8_t test_node_cmd_len)
+{
+     pTestDevType test_dev_temp = (pTestDevType)dev;
+     uint8_t test_dev_node_all = 0;
+     pTestCmdNodeType pNode = NULL;
+     if (test_dev_temp == NULL ||
+         test_node_cmd_len == 0)
+     {
+         return;
+     }
 
-    // 流水灯测试
-#if (defined(_LED_WATER_TEST) && _LED_WATER_TEST == 0x01)
-    req[2] = LED_WATER;
-#if (defined(_LEFT_WATER_TEST) && _LEFT_WATER_TEST == 0x01)
-    /* 左转 蓝色 单次流水灯数量1个 流水速度：200ms*/
-    req[3] = 0x01;
-    req[4] = 0x04;
-    req[5] = 0x05;
-    req[6] = 0x03;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#else
-    /* 右转 白色 单次流水灯数量2个 流水速度：500ms */
-    req[3] = 0x02;
-    req[4] = 0x01;
-    req[5] = 0x0A;
-    req[6] = 0x03;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#endif
-#endif
-
-    // 分段闪烁测试
-#if (defined(_LED_BLINK_TEST) && _LED_BLINK_TEST == 0x01)
-    req[2] = LED_BLINK;
-#if (defined(_LEFT_BLINK_TEST) && _LEFT_BLINK_TEST == 0x01)
-    /* 左边 绿色 10个led灯 闪烁周期50ms*/
-    req[3] = 0x03;
-    req[4] = 0x03;
-    req[5] = 0x0A;
-    req[6] = 0x01;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#else
-    /* 右边 蓝色 10个led灯 闪烁周期250ms */
-    req[3] = 0x04;
-    req[4] = 0x04;
-    req[5] = 0x0A;
-    req[6] = 0x05;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#endif
-#endif
-
-    // 呼吸模式测试
-#if (defined(_LED_BREATH_TEST) && _LED_BREATH_TEST == 0x01)
-    req[2] = LED_BREATH;
-    /* 灯带白色呼吸 呼吸周期 500ms */
-    req[4] = 5;
-    req[5] = 0x01;
-    req[6] = 0x00;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 灯带黑色->白色呼吸 呼吸周期 1000ms */
-    req[4] = 10;
-    req[5] = 0x00;
-    req[6] = 0x01;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-    /* 灯带红色->绿色呼吸 呼吸周期 800ms */
-    req[4] = 8;
-    req[5] = 0x02;
-    req[6] = 0x03;
-    req[8] = CheckXOR(req, ITEM_NUM(req));
-    led_bar_control(req, ITEM_NUM(req));
-#endif
-#endif
-    while (1)
+    // 若初始测试结点已经分配了内存 需释放
+    if (test_dev_temp->cmdNodes != NULL)
     {
-        task_server();
+        free(test_dev_temp->cmdNodes);
+        test_dev_temp->cmdNodes = NULL;
+    }
+    // 重新给测试结点分配内存
+    test_dev_node_all = (INTERFACE_TEST + 1) * TEST_TASK_NUM;
+    test_dev_temp->cmdNodes =
+    (TestCmdNodeType (*)[TEST_TASK_NUM])malloc(test_dev_node_all * sizeof(TestCmdNodeType));
+    if (test_dev_temp->cmdNodes == NULL)
+    {
+        return;
+    }
+    memset(test_dev_temp->cmdNodes,
+           0,
+           test_dev_node_all * sizeof(TestCmdNodeType));
+
+    // 初始化单个测试结点对应的命令名内存
+    pNode = test_dev_temp->cmdNodes[FUNC_TEST];
+    for (uint8_t test_node_cnt = 0; test_node_cnt < test_dev_node_all; test_node_cnt++)
+    {
+        pNode[test_node_cnt].cmd_name =
+        (uint8_t *)malloc(sizeof(uint8_t) * test_node_cmd_len);
+        if (pNode[test_node_cnt].cmd_name == NULL)
+        {
+            return;
+        }
+        memset(pNode[test_node_cnt].cmd_name,
+               0,
+               sizeof(uint8_t) * test_node_cmd_len);
+    }
+
+    // 若初始化测试结点总数已经分配了内存 需释放
+    if (test_dev_temp->freeNodesAll != NULL)
+    {
+        free((void *)test_dev_temp->freeNodesAll);
+    }
+    test_dev_temp->freeNodesAll = (const uint8_t (*)[1])malloc( (INTERFACE_TEST + 1) * 1 * sizeof(uint8_t));
+    if (test_dev_temp->freeNodesAll == NULL)
+    {
+        return;
+    }
+    memset((void *)test_dev_temp->freeNodesAll,
+           TEST_TASK_NUM,
+           (INTERFACE_TEST + 1) * 1 * sizeof(uint8_t));
+
+    // 若初始化测试结点计数变量已经分配了内存 需释放
+    if (test_dev_temp->freeNodesCnt != NULL)
+    {
+        free(test_dev_temp->freeNodesCnt);
+    }
+    test_dev_temp->freeNodesCnt = (uint8_t (*)[1])malloc( (INTERFACE_TEST + 1) * 1 * sizeof(uint8_t));
+    if (test_dev_temp->freeNodesCnt == NULL)
+    {
+        return;
+    }
+    memset(test_dev_temp->freeNodesCnt,
+           TEST_TASK_NUM,
+           (INTERFACE_TEST + 1) * 1 * sizeof(uint8_t));
+}
+
+/**
+ * @brief 注册测试任务
+ *
+ * @param dev               测试设备
+ * @param test_type         测试类型@TestType
+ * @param test_cmd_name     测试命令(字符串)
+ * @param test_callback     测试命令对应的执行函数
+ */
+static void _regist(void *dev,
+                    const TestType test_type,
+                    const char *test_cmd_name,
+                    void (*test_callback)(void))
+{
+    pTestDevType test_dev_temp = (pTestDevType)dev;
+    uint8_t freeNodesCnt = 0;
+    uint8_t freeNodesAll = 0;
+    uint8_t cal_pos = 0;
+
+    // 传入参数有效性判断
+    if (test_dev_temp == NULL)
+    {
+        return;
+    }
+
+    // 获取当前测试设备的空闲结点个数 并判断其有效性
+    freeNodesCnt = test_dev_temp->freeNodesCnt[test_type][0];
+    if (freeNodesCnt == 0)
+    {
+        return;
+    }
+
+    // 在现有测试结点中 匹配已有测试任务 若存在该任务 则替换执行函数
+    for (uint8_t node_cnt = 0; node_cnt < TEST_TASK_NUM; node_cnt++)
+    {
+        if (strncmp(test_cmd_name,
+                    (const void *)test_dev_temp->cmdNodes[test_type][node_cnt].cmd_name,
+                    strlen(test_cmd_name)) == 0)
+        {
+            test_dev_temp->cmdNodes[test_type][node_cnt].cmd_callback =
+            test_callback;
+        }
+    }
+
+    // 获取当前测试设备的空闲结点总数 并计算即将插入测试任务的结点位置
+    freeNodesAll = test_dev_temp->freeNodesAll[test_type][0];
+    cal_pos = freeNodesAll - freeNodesCnt;
+
+    // 任务注册
+    if (test_dev_temp->cmdNodes[test_type][cal_pos].cmd_name == NULL)
+    {
+        return;
+    }
+    // 若注册的任务命令长度大于单个测试结点预留的任务命令长度
+    if (strlen(test_cmd_name) > TEST_NODE_CMD_LEN)
+    {
+        memcpy(test_dev_temp->cmdNodes[test_type][cal_pos].cmd_name,
+            test_cmd_name,
+            TEST_NODE_CMD_LEN);
+    }
+    else
+    {
+        memcpy(test_dev_temp->cmdNodes[test_type][cal_pos].cmd_name,
+            test_cmd_name,
+            strlen(test_cmd_name));
+    }
+    test_dev_temp->cmdNodes[test_type][cal_pos].cmd_callback = test_callback;
+
+    // 空闲结点数更新
+    (test_dev_temp->freeNodesCnt[test_type][0])--;
+}
+
+/**
+ * @brief 测试任务调度
+ *
+ * @param dev           测试设备
+ * @param test_type     测试任务类型
+ */
+static void _schedule(void *dev,
+                      const TestType test_type)
+{
+    pTestDevType test_dev_temp = (pTestDevType)dev;
+    uint8_t need_test_nodes = 0;
+    if (test_dev_temp == NULL)
+    {
+        return;
+    }
+
+    need_test_nodes = test_dev_temp->freeNodesAll[test_type][0] -
+                      test_dev_temp->freeNodesCnt[test_type][0];
+    // 判断各测试类型有无需调度的测试结点
+    if (need_test_nodes == 0 ||
+        (int)need_test_nodes < 0) {
+        return;
+    }
+
+    // 遍历测试任务列表中各结点
+    for (uint8_t test_nodes_cnt = 0; test_nodes_cnt < need_test_nodes; test_nodes_cnt++)
+    {
+        if (test_dev_temp->cmdNodes[test_type][test_nodes_cnt].cmd_callback != NULL)
+        {
+            test_dev_temp->cmdNodes[test_type][test_nodes_cnt].cmd_callback();
+        }
     }
 }
+
+//=========================================================================
+void init_test_task(void)
+{
+    test_dev.init_task((void *)&test_dev, TEST_NODE_CMD_LEN);
+}
+
+void regist_test_task(const TestType test_type,
+                      const char *test_cmd_name,
+                      void (*test_func)(void))
+{
+    if ((test_type != FUNC_TEST &&
+        test_type != INTERFACE_TEST) ||
+        test_cmd_name == NULL ||
+        test_func == NULL)
+    {
+        return;
+    }
+    test_dev.regist_task((void *)&test_dev,
+                         test_type,
+                         test_cmd_name,
+                         test_func);
+}
+
+void schedule_test_task(const TestType test_type)
+{
+    if (test_type != FUNC_TEST &&
+        test_type != INTERFACE_TEST)
+    {
+        return;
+    }
+    test_dev.schedule_task((void *)&test_dev,
+                            test_type);
+}
+
+#endif
