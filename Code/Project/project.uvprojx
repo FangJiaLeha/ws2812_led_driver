@@ -50,11 +50,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-<<<<<<< HEAD:Template/Project/app_project.uvprojx
-          <OutputName>gd32f330_ws2812_driver_V1.x.x</OutputName>
-=======
           <OutputName>gd32f330_led_driver_V1.x.x</OutputName>
->>>>>>> feat/driver_module:Code/Project/project.uvprojx
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -344,11 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-<<<<<<< HEAD:Template/Project/app_project.uvprojx
-              <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap;..\platform\function</IncludePath>
-=======
               <IncludePath>..\..\Firmware\CMSIS;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\platform\bsp\inc;..\platform\function;..\platform\Inc;..\platform\test;..\..\Code</IncludePath>
->>>>>>> feat/driver_module:Code/Project/project.uvprojx
             </VariousControls>
           </Cads>
           <Aads>
@@ -602,12 +594,6 @@
               <FileType>1</FileType>
               <FilePath>..\platform\src\task_sch.c</FilePath>
             </File>
-<<<<<<< HEAD:Template/Project/app_project.uvprojx
-            <File>
-              <FileName>register_info.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\function\register_info.c</FilePath>
-=======
             <File>
               <FileName>register_info.c</FileName>
               <FileType>1</FileType>
@@ -637,7 +623,6 @@
               <FileName>ws2812_led_bar.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\bsp\src\ws2812_led_bar.c</FilePath>
->>>>>>> feat/driver_module:Code/Project/project.uvprojx
             </File>
           </Files>
         </Group>
