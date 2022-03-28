@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>GD32F330_App</TargetName>
+      <TargetName>gd32f330_led_driver</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pArmCC>5060960::V5.06 update 7 (build 960)::.\ARMCC</pArmCC>
@@ -50,7 +50,11 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
+<<<<<<< HEAD:Template/Project/app_project.uvprojx
           <OutputName>gd32f330_ws2812_driver_V1.x.x</OutputName>
+=======
+          <OutputName>gd32f330_led_driver_V1.x.x</OutputName>
+>>>>>>> feat/driver_module:Code/Project/project.uvprojx
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -81,7 +85,7 @@
             <nStopB2X>0</nStopB2X>
           </BeforeMake>
           <AfterMake>
-            <RunUserProg1>1</RunUserProg1>
+            <RunUserProg1>0</RunUserProg1>
             <RunUserProg2>0</RunUserProg2>
             <UserProg1Name>"Post Universe Chassis.bat"</UserProg1Name>
             <UserProg2Name></UserProg2Name>
@@ -340,7 +344,11 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
+<<<<<<< HEAD:Template/Project/app_project.uvprojx
               <IncludePath>..\..\Template;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\..\Firmware\CMSIS;..\..\Template;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\platform\Inc;..\platform\test;..\platform\iap;..\platform\function</IncludePath>
+=======
+              <IncludePath>..\..\Firmware\CMSIS;..\..\Firmware\CMSIS\GD\GD32F3x0\Include;..\..\Firmware\GD32F3x0_standard_peripheral\Include;..\platform\bsp\inc;..\platform\function;..\platform\Inc;..\platform\test;..\..\Code</IncludePath>
+>>>>>>> feat/driver_module:Code/Project/project.uvprojx
             </VariousControls>
           </Cads>
           <Aads>
@@ -545,16 +553,6 @@
           <GroupName>Platform</GroupName>
           <Files>
             <File>
-              <FileName>ws2812.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\ws2812.c</FilePath>
-            </File>
-            <File>
-              <FileName>ws2812_led_bar.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\platform\src\ws2812_led_bar.c</FilePath>
-            </File>
-            <File>
               <FileName>board.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\board.c</FilePath>
@@ -573,6 +571,11 @@
               <FileName>drv_i2c.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\src\drv_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_wdgt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\src\drv_wdgt.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -599,10 +602,42 @@
               <FileType>1</FileType>
               <FilePath>..\platform\src\task_sch.c</FilePath>
             </File>
+<<<<<<< HEAD:Template/Project/app_project.uvprojx
             <File>
               <FileName>register_info.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\platform\function\register_info.c</FilePath>
+=======
+            <File>
+              <FileName>register_info.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\function\register_info.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>tlc59108.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\tlc59108.c</FilePath>
+            </File>
+            <File>
+              <FileName>tlc59108_led_bar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\tlc59108_led_bar.c</FilePath>
+            </File>
+            <File>
+              <FileName>ws2812.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\ws2812.c</FilePath>
+            </File>
+            <File>
+              <FileName>ws2812_led_bar.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\platform\bsp\src\ws2812_led_bar.c</FilePath>
+>>>>>>> feat/driver_module:Code/Project/project.uvprojx
             </File>
           </Files>
         </Group>
