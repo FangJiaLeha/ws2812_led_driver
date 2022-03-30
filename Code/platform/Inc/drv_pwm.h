@@ -193,7 +193,7 @@ typedef pwm_channel_base_attr_type *pwm_channel_base_attr_t;
  * @brief B09和PJ0019开发环境兼容处理
  *
  */
-#define TEST_BOARD_B09
+//#define TEST_BOARD_B09
 
 /**
  * @brief WS2812 PWM波驱动频率
