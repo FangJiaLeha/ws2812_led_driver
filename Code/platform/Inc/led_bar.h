@@ -180,8 +180,9 @@ enum driver_recv_len
  *  V1.2.9  Modify the test.c/test.h and support regist test task
  *  V1.3.0  Forget comment B09 test macro
  *  V1.3.1  Modify the i2c addr to fix screen bug(i2c addr confilct)
+ *  V1.3.2  Adapt the tlc59108 addr of i2c
  */
-#define PROGRAM_VERSION MK_PROGRAM_VERSION(1, 3, 1)
+#define PROGRAM_VERSION MK_PROGRAM_VERSION(1, 3, 2)
 
 /******************************************************************************/
 /**
